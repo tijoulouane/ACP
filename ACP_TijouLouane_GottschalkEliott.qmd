@@ -14,8 +14,10 @@ execute:
 
 il faut un script R pour tout éxécuter en une seule fois (ou cellule quarto) code fold sur le pdf \> code plié donc moins de place
 
+
 # Introduction 
 
+faire 
 
 ## Import des packages
 
