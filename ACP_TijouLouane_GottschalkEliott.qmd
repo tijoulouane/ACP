@@ -498,8 +498,8 @@ pca <- PCA(Base_dep[, variables_quantitatives], scale.unit = TRUE, graph = FALSE
 ### Pourcentage d’inertie expliquée et règle de Kaiser 
 ```{r}
 pca$eig      # valeurs propres et % de variance expliquée
-pca$var$coord # coordonnées des variables sur les axes
-pca$ind$coord # coordonnées des individus
+#pca$var$coord # coordonnées des variables sur les axes
+#pca$ind$coord # coordonnées des individus
 ```
 
 Après analyse des valeurs propres de l’ACP, on observe que les deux premières composantes principales expliquent 81,21% de la variance totale (Dim 1 : 61,46 %, Dim 2 : 19,74%). Ces deux axes contiennent donc l’essentiel de l’information et permettent de synthétiser efficacement les relations entre les secteurs et les départements. Nous avons donc choisi de retenir uniquement les deux premières composantes pour les analyses et visualisations ultérieures.
