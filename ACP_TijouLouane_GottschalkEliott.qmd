@@ -476,6 +476,10 @@ Le test de Bartlett s'avère très significatif et permet de rejeté l'hypothès
 
 # ACP avec agriculture 
 
+```{r}
+rownames(Base_dep) <- Base_dep$dep_code
+```
+
 Bien que toutes les variables soient exprimées dans la même unité (tonnes équivalent CO₂), leurs dispersions et ordres de grandeur diffèrent fortement selon les secteurs. Le centrage-réduction est donc nécessaire afin d’éviter que les secteurs les plus émetteurs ne dominent l’analyse et afin de mettre en évidence la structure relative des émissions entre départements.
 
 ```{r}
@@ -509,8 +513,8 @@ Selon la règle de Kaiser, on ne conserve que les composantes dont la valeur pro
 
 ### Éboulis des valeurs propres 
 
-```{r scree_plot}
-fviz_eig(pca, addlabels = TRUE)
+```{r}
+fviz_eig(pca, addlabels = TRUE, main = "Eboulis des valeurs propres")
 ```
 
 L’éboulis des valeurs propres montre une chute marquée après la deuxième composante, ce qui suggère que les deux premiers axes concentrent l’essentiel de l’information pertinente.
@@ -524,29 +528,25 @@ fviz_pca_var(pca, col.var = "contrib")
 fviz_pca_ind(pca, col.ind = "cos2")
 ```
 
-```{r}
-pca$eig
-fviz_eig(pca)
-```
 
 même procédé sans les valeurs extrêmes:
 
+
 ```{r}
+dep_atypiques <- c(95, 94, 93, 76, 13)
+base_dep_clean1 <- Base_dep[!Base_dep$dep_code %in% dep_atypiques, ]
 
-# A. Justification du nombre d'axes (Scree Plot)
-p1 <- fviz_eig(pca, addlabels = TRUE, main = "Eboulis des valeurs propres")
-
-plot(p1)
 ```
 
 ```{r}
-base_sans_extremes <- Base_dep[-c(95,94,93,76,13),]
-pca2 <- PCA(base_sans_extremes[, variables_quantitatives], 
-            scale.unit = TRUE, 
-            graph = FALSE)
+
+pca22 <- PCA(base_dep_clean1[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
+```
+
+```{r}
 # B. Cercle des corrélations (Variables)
 # Les couleurs indiquent la contribution (quelles variables créent les axes)
-p2 <- fviz_pca_var(pca2, 
+p2 <- fviz_pca_var(pca22, 
                    col.var = "contrib", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    repel = TRUE,
@@ -557,17 +557,21 @@ plot(p2)
 ```{r}
 # C. Carte des individus
 # Les couleurs indiquent la qualité de représentation (cos2)
-p3 <- fviz_pca_ind(pca2, 
+p3 <- fviz_pca_ind(pca22, 
                    col.ind = "cos2", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   repel = TRUE,
+                   #repel = TRUE,
                    title = "Carte des individus (cos2)")
 plot(p3)
 ```
 
 ```{r}
+fviz_pca_ind((pca2))
+```
+
+```{r}
 # D. Le Biplot (Synthèse Individus + Variables)
-p4 <- fviz_pca_biplot(pca2, 
+p4 <- fviz_pca_biplot(pca22, 
                       repel = TRUE,
                       col.var = "black", 
                       col.ind = "#696969",
@@ -578,7 +582,7 @@ plot(p4)
 ```{r}
 # --- 4. Analyse des groupes (HCPC) ---
 # Classification pour identifier des typologies d'individus
-res.hcpc <- HCPC(pca2, graph = FALSE)
+res.hcpc <- HCPC(pca22, graph = FALSE)
 fviz_cluster(res.hcpc, 
              repel = TRUE, 
              main = "Groupes d'individus (Clustering)")
@@ -587,20 +591,20 @@ fviz_cluster(res.hcpc,
 ```{r}
 # --- 5. Extraction des résultats numériques ---
 # Pour voir quelles variables contribuent le plus à l'axe 1
-res_vars <- pca2$var$contrib
+res_vars <- pca22$var$contrib
 head(res_vars[order(res_vars[,1], decreasing = TRUE), ])
 ```
 
 ```{r}
-res.desc <- dimdesc(pca2, proba = 0.05)
+res.desc <- dimdesc(pca22, proba = 0.05)
 # Pour voir les variables corrélées à l'axe 1 :
 res.desc$Dim.1
 ```
 
 ```{r}
 # Graphique des contributions des variables à l'axe 1 et 2
-fviz_contrib(pca2, choice = "var", axes = 1, top = 10)
-fviz_contrib(pca2, choice = "var", axes = 2, top = 10)
+fviz_contrib(pca22, choice = "var", axes = 1, top = 10)
+fviz_contrib(pca22, choice = "var", axes = 2, top = 10)
 ```
 
 # ACP sans la variable agriculture 
@@ -647,13 +651,17 @@ De la même manière que précédemment, bien que toutes les variables soient da
 pca_sans_agri <- PCA(base_dep_sans_Agriculture[, variables_quantitatives_sans_Agriculture], scale.unit = TRUE, graph = FALSE)
 ```
 
-### Nombre d'axes 
+### Choix du nombre de dimenssion
 
 ```{r}
 pca_sans_agri$eig
+```
+Ici encore nous décidons de garder 2 axes. Le cummul des 2 composantes principales expliquent 92,5 %  de la variance totale (environ 70 % pour Dim1 et 23 % pour Dim 2 ) ce qui est très bon, ils synthétise l'essentiel de l'information présente dans le modèle. De plus la règle de kaiser nous précise bien de garder seulement les 2 premiers axes car la valeur propre est supérieuru à 1.
+
+```{r}
 fviz_eig(pca_sans_agri)
 ```
-Ici encore nous décidons de garder 2 axes. Le cummul des 2 composantes principales expliquent 92,5 %  de la variance totale (environ 70 % pour Dim1 et 23 % pour Dim 2 ) ce qui est très bon, ils synthétise l'essentiel de l'information présente dans le modèle.
+
 
 
 ```{r}
@@ -676,7 +684,8 @@ fviz_cluster(res.hcpc)
 
 Mais la présence des départements atypiques masque un peu la distinction → il faudra envisager une ACP sans ces départements.
 
-### ACP sans les variables atypiques 
+### ACP sans les variables atypiques
+
 ```{r}
 dep_atypiques <- c(95, 94, 93, 76, 13)
 base_dep_clean <- base_dep_sans_Agriculture[!base_dep_sans_Agriculture$dep_code %in% dep_atypiques, ]
@@ -693,41 +702,64 @@ pca_clean <- PCA(base_dep_clean[, variables_quantitatives_sans_Agriculture], sca
 pca_clean$eig
 fviz_eig(pca_clean)
 ```
-avec 2 axes 92,77% 
+
+Ici avec seulement un axe la composante principale est de 81,1 % et selon la règle de Kaiser seulement le premier axe suffit pour synthétiser l'information. 
 
 ### Graphique 
 
+2 axes 
 ```{r}
-fviz_pca_var(pca_clean, col.var = "contrib")
+fviz_pca_var(pca_clean,
+             axes = c(1,2),       
+             col.var = "contrib",
+             gradient.cols = c("lightblue", "blue", "darkblue"),
+             repel = TRUE)
 ```
 
+ Que axe 1
+```{r}
+# Extraire les contributions des variables sur l'axe 1
+var_contrib <- pca_clean$var$contrib[,1]
+
+# Créer un barplot simple
+barplot(sort(var_contrib, decreasing = TRUE),
+        main = "Contributions des variables à l'axe 1",
+        col = "lightblue",
+        las = 2,        # pour afficher les noms verticalement
+        cex.names = 0.8,
+        ylab = "Contribution (%)")
+
+```
 
 ```{r}
 fviz_pca_ind(pca_clean, col.ind = "cos2")
 ```
  
- 91 et 75 sont eux aussi dispersé loins du profil moyen BIZZARE 
+ 91 et 75 sont eux aussi dispersé loins du profil moyen BIZZARE
  
- 
- 
- même procédé sans les valeurs extrêmes:
-
 ```{r}
+# Coordonnées des départements sur l'axe 1
+coord_ax1 <- pca_clean$ind$coord[,1]
 
-# A. Justification du nombre d'axes (Scree Plot)
-p1 <- fviz_eig(pca, addlabels = TRUE, main = "Eboulis des valeurs propres")
+# Barplot pour visualiser leur position
+barplot(sort(coord_ax1),
+        main = "Position des départements sur l'axe 1",
+        col = "lightgreen",
+        las = 2,
+        cex.names = 0.7,
+        ylab = "Coordonnée sur l'axe 1")
 
-plot(p1)
 ```
+ 
+ 
+ 
 
 ```{r}
-base_sans_extremes_2 <- base_dep_sans_Agriculture[-c(95,94,93,76,13),]
-pca3 <- PCA(base_sans_extremes_2[, variables_quantitatives_sans_Agriculture], 
-            scale.unit = TRUE, 
-            graph = FALSE)
+
+
 # B. Cercle des corrélations (Variables)
 # Les couleurs indiquent la contribution (quelles variables créent les axes)
-p2 <- fviz_pca_var(pca3, 
+p2 <- fviz_pca_var(pca_clean, 
                    col.var = "contrib", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    repel = TRUE,
@@ -738,7 +770,8 @@ plot(p2)
 ```{r}
 # C. Carte des individus
 # Les couleurs indiquent la qualité de représentation (cos2)
-p3 <- fviz_pca_ind(pca3, 
+p3 <- fviz_pca_ind(pca_clean, 
+                  label = base_dep_clean$dep_code,
                    col.ind = "cos2", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    repel = TRUE,
@@ -746,7 +779,26 @@ p3 <- fviz_pca_ind(pca3,
 plot(p3)
 ```
 
-on obtient pas pareil a cause de repel 
 
 
+### sans départements atypiqe 
+
+```{r}
+dep_atypiques <- c(91,75,95, 94, 93, 76, 13)
+base_dep_clean2 <- base_dep_sans_Agriculture[!base_dep_sans_Agriculture$dep_code %in% dep_atypiques, ]
+```
+
+```{r}
+pca_clean2 <- PCA(base_dep_clean2[, variables_quantitatives_sans_Agriculture], scale.unit = TRUE, graph = FALSE)
+```
+
+
+```{r}
+pca_clean2$eig
+fviz_eig(pca_clean2)
+```
+
+```{r}
+fviz_pca_ind(pca_clean2, col.ind = "cos2")
+```
 # Conclusion
