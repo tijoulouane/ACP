@@ -539,7 +539,6 @@ base_dep_clean1 <- Base_dep[!Base_dep$dep_code %in% dep_atypiques, ]
 ```
 
 ```{r}
-
 pca22 <- PCA(base_dep_clean1[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
 ```
 
