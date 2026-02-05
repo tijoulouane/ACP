@@ -537,7 +537,6 @@ même procédé sans les valeurs extrêmes:
 ```{r}
 dep_atypiques <- c(95, 94, 93, 76, 13)
 base_dep_clean1 <- Base_dep[!Base_dep$dep_code %in% dep_atypiques, ]
-
 ```
 
 ```{r}
