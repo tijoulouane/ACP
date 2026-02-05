@@ -236,7 +236,7 @@ Base_dep <- Base_dep[, !colnames(Base_dep) %in% c(
 
 ```{r}
 Base_dep <- Base_dep %>%
-  group_by(dep_code) %>%             # regrouper par code postal
+  group_by(dep_code) %>%              # regrouper par code postal
   summarise(
     dep_nom = first(dep_nom),
     Agriculture = mean(Agriculture, na.rm = TRUE),
@@ -252,6 +252,15 @@ Base_dep <- Base_dep %>%
 
 ```{r}
 gg_miss_var(Base_dep)
+```
+```{r}
+# identification de la valeur manquante
+Base_dep[!complete.cases(Base_dep), ]
+```
+Il s'agit de Paris (intra-muros), étant donné qu'aucune activité agricole n'y est réalisée, on décide d'imputer la valeur 0.
+```{r}
+Base_dep <- Base_dep %>% 
+  mutate(across(everything(), ~replace_na(., 0)))
 ```
 
 ```{r}
@@ -285,8 +294,6 @@ tableau <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
 }) |> bind_rows()
 tableau
 ```
-
-Pas d'agriculture à Paris c'est normal 
 
 On remarque que quelques départements très émetteurs de CO2 tirent fortement la moyenne vers le haut, tandis que la majorité des départements ont des niveaux d’émissions plus faibles.
 
@@ -489,11 +496,6 @@ det(corr_mat)
 Il n’est pas nul, donc il n’y a pas de corrélation parfaite.
 
 ```{r}
-Base_dep_std <- scale(Base_dep[, -c(1,2)])
-
-```
-
-```{r}
 pca <- PCA(Base_dep[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
 ```
 
@@ -556,17 +558,14 @@ plot(p2)
 ```{r}
 # C. Carte des individus
 # Les couleurs indiquent la qualité de représentation (cos2)
-p3 <- fviz_pca_ind(pca22, 
+p3 <fviz_pca_ind(pca22, 
                    col.ind = "cos2", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   #repel = TRUE,
+                   #repel =-  TRUE,
                    title = "Carte des individus (cos2)")
 plot(p3)
 ```
 
-```{r}
-fviz_pca_ind((pca2))
-```
 
 ```{r}
 # D. Le Biplot (Synthèse Individus + Variables)

@@ -1,0 +1,451 @@
+---
+title: "V3"
+format: html
+editor: visual
+---
+---
+title: "V2"
+format: html
+editor: visual
+---
+il faut un script R pour tout éxécuter en une seule fois (ou cellule quarto) code fold sur le pdf \> code plié donc moins de place
+
+
+# Introduction 
+
+faire 
+
+## Import des packages
+
+Les packages suivants sont utilisés afin de faciliter l'importation des données, leur nettoyage, l’analyse exploratoire ainsi que la réalisation des analyses statistiques et graphiques nécessaires à l’étude.
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(naniar)
+library(dplyr)
+library(outliers)
+library(EnvStats)
+library(PerformanceAnalytics)
+library(corrplot)
+library(reshape2)
+library(ggplot2)
+library(FactoMineR)
+library(factoextra)
+library(psych)
+```
+
+## Import de la base de données
+
+Cette base de données contient les émissions de CO₂ des communes françaises, par secteur (agriculture, transport, énergie, industrie ...). Les données viennent du CITEPA et nous l'avons trouver sur la plateforme officielle *data.gouv.fr* ([source](https://www.data.gouv.fr/datasets/inventaire-de-gaz-a-effet-de-serre-territorialise/))
+
+```{r}
+Base <- read_xlsx("IGT - Pouvoir de réchauffement global.xlsx")
+```
+
+## Vérification des données importées
+
+On regarde les premières lignes de la base de donnée avec pour s’assurer que les données ont été correctement importées et que les colonnes correspondent bien aux informations attendues.
+
+```{r}
+head(Base)
+```
+
+Vérification des noms des colonnes de la base de données et du nombre de ligne.
+
+```{r}
+names(Base)
+nrow(Base)
+```
+
+```{r}
+Base <- Base %>%
+  rename(
+    Industrie = `Industrie hors-énergie`,
+    CO2_biomasse = `CO2 biomasse hors-total`,
+    Code_INSEE_commune = `INSEE commune`,
+    Autres_transports_international = `Autres transports international`,
+    Autres_transports = `Autres transports`,
+    Nom_commune = Commune)
+
+```
+
+## Description des Variabes
+
+Explication de nos 12 variables :
+
+-   **Code_INSEE_commune** : (chr) Code unique à 5 chiffres attribué à chaque commune en France par l’INSEE. Les deux premiers chiffres correspondent au département.
+
+-   **Nom_commune** :(chr) Nom de la commune
+
+-   **Agriculture** :(num) Emissions de CO₂ liées aux activités agricoles (en tonnes équivalent CO₂)
+
+-   **Autres_transports** : (num) Emissions liées aux transports non routiers et non internationaux,comme le transport fluvial, ferroviaire ou local, (en tonnes équivalent CO₂).
+
+-   **Autres_transports_international** : (num) Emissions liées aux transports internationaux (en tonnes équivalent CO₂).
+
+-   **CO2_biomasse** : (num) Emissions de CO₂ provenant de la biomasse,c’est-à-dire la matière organique d’origine végétale ou animale utilisé pour produire de l'énergie, en tonnes équivalent CO₂.
+
+-   **Déchets** : (num) Emissions liées à la gestion des déchets (en tonnes équivalent CO₂).
+
+-   **Energie**: (num) Emissions liées à la production et consommation d’énergie (en tonnes équivalent CO₂).
+
+-   **Industrie** : (num) Emissions de l’industrie hors énergie, par exemple la fabrication de matériaux, de produits chimiques ou d’autres biens industriels, sans compter les émissions liées à la consommation d’énergie de ces industries), en tonnes équivalent CO₂.
+
+-   **Résidentiel** : (num) Emissions liées aux logements et aux habitations, incluant le chauffage, la consommation d’électricité et de gaz (secteur résidentiel), exprimées en tonnes équivalent CO₂.
+
+-   **Routier** : (num) Emissions liées au transport routier (en tonnes équivalent CO₂).
+
+-   **Tertiaire** : (num) Emissions liées au secteur tertiaire, c’est-à-dire les services comme les bureaux, commerces, administrations, écoles ou hôpitaux, (en tonnes équivalent CO₂).
+
+## Structure de la base de donnée
+
+Vérification des types des variables. Cela permet de vérifier que les colonnes sont bien classées en numériques ou caractères avant de poursuivre l’analyse.
+
+```{r}
+str(Base)
+```
+
+Aucun problème : toutes nos variables quantitatives sont bien au format numérique, et nos deux variables qualitatives (Commune et Code_INSEE_commune) sont correctement au format caractère.
+
+## Vérification des données manquantes
+
+Il est à présent temps de vérifier si il y a des données manquantes dans nos variables
+
+```{r}
+gg_miss_var(Base)
+```
+
+On s’aperçoit que les variables *Autres_transports* et *Autres_transports_international* contiennent plus de 25 000 valeurs manquantes sur 35 798 lignes, ce qui représente environ 70 % des données. Étant donné cette proportion très élevée de données manquantes, il est préférable de supprimer ces deux colonnes pour éviter de fausser l’analyse.
+
+```{r}
+sum(is.na(Base$Autres_transports_international))
+# 32907 données manquantes 
+sum(is.na(Base$Autres_transports))
+# 25819 données manquantes 
+sum(is.na(Base$Industrie))
+#1308
+sum(is.na(Base$Energie))
+#1308
+```
+
+### Suppression des 2 variables avec plus de 80 % de NA
+
+```{r}
+Base <- Base[, !colnames(Base) %in% c(
+  "Autres_transports",
+  "Autres_transports_international")]
+```
+
+On s'aperçoit qu'il reste toujours quelques variables avec des NA
+
+```{r}
+gg_miss_var(Base)
+```
+
+# 1. Analyse univarié
+
+```{r}
+variables_quantitatives <- c("Agriculture","CO2_biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")             
+```
+
+```{r}
+tableau <- lapply(names(Base[variables_quantitatives]), function(var) {
+  x <- Base[[var]]
+  if(is.numeric(x)) {
+    data.frame(
+      Variable = var,
+      Moyenne = mean(x, na.rm = TRUE),
+      Médiane = median(x, na.rm = TRUE),
+      Minimum = min(x, na.rm = TRUE),
+      Maximum = max(x, na.rm = TRUE),
+      Ecart_type = sd(x, na.rm = TRUE),
+      stringsAsFactors = FALSE)}
+}) |> bind_rows()
+tableau
+```
+
+## Création de la variable département
+
+Le fichier contient des données pour toutes les communes françaises, ce qui représente plusieurs milliers de lignes, soit 35 798 observations. Travailler à ce niveau de détail ralenti les calculs et rend l’analyse moins lisible, notamment pour l’ACP. Pour simplifier l’analyse et faciliter la synthèse des données, nous créons une nouvelle variable *departement* en récupérant les deux premiers chiffres du code INSEE de chaque commune, correspondant au code du département.
+
+Cela nous permet par la suite de regrouper les communes par département et de passer à une analyse plus globale, plus facile à manipuler et à interpréter.
+
+```{r}
+Base$departement <- substr(Base$Code_INSEE_commune, 1, 2)
+```
+
+```{r}
+table(Base$departement)
+```
+
+On vérifie si il y a des données manquantes dans la nouvelle variable dans le cas où elle aurait été mal créer
+
+```{r}
+sum(is.na(Base$departement))
+```
+
+## Import d'une nouvelle base de donnée (INSEE)
+
+```{r}
+Base_INSEE <- read_csv("communes-france-2025.csv")
+```
+
+On garde seulement 2 variables sur les 47, le nom du département et le code de celui-ci
+
+```{r}
+commune_reduite <- Base_INSEE[, c( "dep_nom",
+                                   "dep_code")]
+```
+
+On garde seulement une ligne pour chaque numéros de département différent
+
+```{r}
+communes_reduite_unique <- commune_reduite %>%
+  group_by(dep_code) %>%  
+  slice(1) %>%
+  ungroup()
+```
+
+Jointure gauche, on garde toutes les lignes de la base de donnée et on rajoute la colone dep_nom ( nom du département ) si il y a des correspondancse au niveau des codes de département
+
+```{r}
+Base_dep <- left_join(
+  Base,
+  communes_reduite_unique,
+  by = c("departement" = "dep_code"),
+  keep = TRUE)
+```
+
+```{r}
+sum(is.na(Base_dep$dep_nom))
+```
+
+On supprime les colonnes dont nous avons plus besoin
+
+```{r}
+Base_dep <- Base_dep[, !colnames(Base_dep) %in% c(
+  "INSEE commune",
+  "Commune","departement")]
+```
+
+
+```{r}
+Base_dep <- Base_dep %>%
+  group_by(dep_code) %>%              # regrouper par code postal
+  summarise(
+    dep_nom = first(dep_nom),
+    Agriculture = mean(Agriculture, na.rm = TRUE),
+    CO2_biomasse = mean(CO2_biomasse, na.rm = TRUE),
+    Déchets = mean(Déchets, na.rm = TRUE),
+    Energie = mean(Energie, na.rm = TRUE),
+    Industrie = mean(Industrie, na.rm = TRUE),
+    Résidentiel = mean(Résidentiel, na.rm = TRUE),
+    Routier = mean(Routier, na.rm = TRUE),
+    Tertiaire = mean(Tertiaire, na.rm = TRUE))
+```
+
+
+```{r}
+gg_miss_var(Base_dep)
+```
+```{r}
+# identification de la valeur manquante
+Base_dep[!complete.cases(Base_dep), ]
+```
+Il s'agit de Paris (intra-muros), étant donné qu'aucune activité agricole n'y est réalisée, on décide d'imputer la valeur 0.
+```{r}
+Base_dep <- Base_dep %>% 
+  mutate(across(everything(), ~replace_na(., 0)))
+```
+
+```{r}
+str(Base_dep)
+```
+
+Les données communales ont été agrégées au niveau départemental en calculant, pour chaque département, la moyenne des émissions de CO₂ par secteur des communes qui le composent.
+
+Les résultats doivent être interprétés comme des profils moyens de communes au sein des départements, et non comme des niveaux totaux d’émissions départementales.
+
+Le passage d’une échelle communale à une échelle départementale permet de réduire la taille du jeu de données et de rendre par la suite l’analyse des corrélations et l’ACP plus lisibles et interprétables.
+
+## Analyse univarié
+
+### Variables quantitatives
+
+```{r}
+tableau <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
+  x <- Base_dep[[var]]
+  if(is.numeric(x)) {
+    data.frame(
+      Variable = var,
+      Moyenne = mean(x, na.rm = TRUE),
+      Médiane = median(x, na.rm = TRUE),
+      Minimum = min(x, na.rm = TRUE),
+      Maximum = max(x, na.rm = TRUE),
+      Ecart_type = sd(x, na.rm = TRUE),
+      stringsAsFactors = FALSE
+    )
+  }
+}) |> bind_rows()
+tableau
+```
+
+On remarque que quelques départements très émetteurs de CO2 tirent fortement la moyenne vers le haut, tandis que la majorité des départements ont des niveaux d’émissions plus faibles.
+
+On peut alors penser que par exemple pour les déchets il y a une forte concentration géographique des infrastructures de traitement des déchets ce qui explique une médiane plutot basse par rapport au maximum. De la même manière on remaque certains département beaucoup plus industrialisé que d'autre
+
+En résumer, l’analyse descriptive met en évidence une forte hétérogénéité des émissions de CO2 selon les secteurs et les départements, avec des distributions très asymétriques et la présence de valeurs extrêmes.
+
+Visualisation :
+
+```{r}
+par(mfrow = c(2,4), mar = c(2,2,1,1))
+
+hist(Base_dep$Agriculture, xlab = "Agriculture", main = "Emission C02 - Agriculture ", col = "lightgreen", cex.main = 0.8)
+hist(Base_dep$CO2_biomasse, xlab = "CO2_biomasse", main = " Emission C02 - CO2_biomass", col = "darkred",cex.main = 0.8)
+hist(Base_dep$Déchets, xlab = "Déchets", main = "Emission C02 - Déchets", col = "tomato",cex.main = 0.8)
+hist(Base_dep$Energie, xlab = "Energie", main = "Emission C02 - Energie" , col = "hotpink",cex.main = 0.8)
+hist(Base_dep$Industrie, xlab = "Industrie", main = "Emission C02 - Industrie ", col = "darkgreen",cex.main = 0.8)
+hist(Base_dep$Résidentiel, xlab = "Résidentiel", main = "Emission C02 - Résidentiel ", col = "lightblue",cex.main = 0.8)
+hist(Base_dep$Routier, xlab = "Routier", main = "Emission C02 - Routier", col = "mediumvioletred",cex.main = 0.8)
+hist(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Emission C02 - Terrtiaire", col = "firebrick",cex.main = 0.8)
+```
+
+```{r}
+par(mfrow = c(2,4), mar = c(2,2,1,1))
+
+boxplot(Base_dep$Agriculture, xlab = "Agriculture", main = " ", col = "lightgreen")
+boxplot(Base_dep$CO2_biomasse, xlab = "CO2_biomasse", main = " ", col = "darkred")
+boxplot(Base_dep$Déchets, xlab = "Déchets", main = " ", col = "tomato")
+boxplot(Base_dep$Energie, xlab = "Energie", main = " ", col = "hotpink")
+boxplot(Base_dep$Industrie, xlab = "Industrie", main = " ", col = "darkgreen")
+boxplot(Base_dep$Résidentiel, xlab = "Résidentiel", main = " ", col = "lightblue")
+boxplot(Base_dep$Routier, xlab = "Routier", main = " ", col = "mediumvioletred")
+boxplot(Base_dep$Tertiaire, xlab = "Tertiaire", main = " ", col = "firebrick")
+```
+
+Les boxplots mettent en évidence la présence de nombreuses valeurs extrêmes pour la plupart des secteurs. Ces valeurs ne traduisent pas des erreurs de mesure, mais reflètent des spécificités territoriales fortes (départements très industrialisés, fortement urbanisés ou spécialisés dans la production d’énergie). Elles ont donc été conservées, car elles constituent une information pertinente pour l’analyse des profils d’émissions.
+
+### Variables qualitative
+
+La base de données contient deux variables qualitatives (dep_code et dep_nom) correspondant à l’identification des départements. Ces variables servent uniquement de repères pour l’interprétation des résultats. Nous vérifions seulement l’absence de doublons afin de nous assurer que chaque département est bien représenté une seule fois. La réalisation d’un graphique en camembert serait illisible compte tenu du nombre élevé de départements et n’apporterait aucune information supplémentaire à l’analyse.
+
+```{r}
+sum(duplicated(Base_dep$dep_code))
+sum(duplicated(Base_dep$dep_nom))
+```
+
+Aucun doublon n'a été détecté.
+
+# 2. Analyse bivariée
+
+### Variables quantitative - quantitative
+
+```{r}
+
+mat <- Base_dep %>%
+  select(all_of(variables_quantitatives)) %>%
+  cor(use = "pairwise.complete.obs")
+
+
+
+mat %>%
+  as.data.frame() %>%
+  mutate(var1 = rownames(.)) %>%
+  pivot_longer(-var1, names_to = "var2", values_to = "cor") %>%
+  filter(var1 < var2, abs(cor) > 0.3) %>% 
+  arrange(desc(abs(cor)))
+
+```
+
+```{r}
+par(mfrow=c(1,1))  # revenir à un seul graphique par page
+
+plot.new()
+cor(Base_dep[,c("Agriculture","CO2_biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")], use="complete.obs",method = c("spearman"))
+
+
+mydata <- Base_dep[, c("Agriculture","CO2_biomasse","Déchets","Energie","Industrie","Résidentiel","Routier","Tertiaire")]
+chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("spearman"))
+
+corr_mat=cor(mydata,method="s")
+corrplot(corr_mat, method = 'number',type="upper",number.cex = 0.5)
+
+corrplot(corr_mat,type="upper")
+
+```
+on a une corrélation supérieure à 95% entre résidentiel, routier et tertiaire. Ce qui est tout à fait normal pour résidentiel et tertiaire car ils sont liés à la densité de population humaine, là où il y a du travail, il y a des logements.
+On va donc opter pour un regroupement de ces deux variables sous une seule: bâtiments.
+```{r}
+Base_dep_finale_2 <- Base_dep %>%
+  mutate(Vie_humaine = Résidentiel + Tertiaire + Routier) %>%
+  select(-Résidentiel, -Tertiaire, -Routier)
+```
+
+```{r}
+variables_quanti_finales_2 <- c("Agriculture","CO2_biomasse","Déchets", "Energie","Industrie","Vie_humaine")  
+```
+
+```{r}
+kmo_result <- KMO(Base_dep_finale_2[, variables_quanti_finales_2])
+kmo_result
+
+```
+
+```{r}
+bartlett_result <- cortest.bartlett(
+  cor(Base_dep_finale_2[, variables_quanti_finales_2], use = "pairwise.complete.obs"),
+  n = nrow(Base_dep_finale_2)
+)
+
+bartlett_result
+```
+```{r}
+rownames(Base_dep_finale_2) <- Base_dep_finale_2$dep_code
+```
+
+```{r}
+mydata <- Base_dep_finale_2[, c("Agriculture","CO2_biomasse","Déchets","Energie","Industrie","Vie_humaine")]
+chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("spearman"))
+
+corr_mat=cor(mydata,method="s")
+det(corr_mat)
+```
+
+```{r}
+pca5 <- PCA(Base_dep_finale_2[, variables_quanti_finales_2], scale.unit = TRUE, graph = FALSE)
+pca5$eig
+```
+
+```{r}
+fviz_pca_var(pca5, col.var = "contrib")
+```
+
+```{r}
+fviz_pca_ind(pca5, col.ind = "cos2")
+```
+
+```{r}
+base_dep_finale_clean_2 <- Base_dep_finale_2[!Base_dep_finale_2$dep_code %in% dep_atypiques, ]
+```
+
+```{r}
+pca6 <- PCA(base_dep_finale_clean_2[, variables_quanti_finales_2], scale.unit = TRUE, graph = FALSE)
+```
+
+```{r}
+fviz_pca_var(pca6, 
+                   col.var = "contrib", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   repel = TRUE,
+                   title = "Cercle des corrélations - Variables")
+```
+```{r}
+fviz_pca_ind(pca6, 
+                   col.ind = "cos2", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   #repel =-  TRUE,
+                   title = "Carte des individus (cos2)")
+```
+
