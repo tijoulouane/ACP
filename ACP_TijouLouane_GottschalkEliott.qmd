@@ -546,34 +546,32 @@ pca22 <- PCA(base_dep_clean1[, variables_quantitatives], scale.unit = TRUE, grap
 ```{r}
 # B. Cercle des corrélations (Variables)
 # Les couleurs indiquent la contribution (quelles variables créent les axes)
-p2 <- fviz_pca_var(pca22, 
+fviz_pca_var(pca22, 
                    col.var = "contrib", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    repel = TRUE,
                    title = "Cercle des corrélations - Variables")
-plot(p2)
+
 ```
 
 ```{r}
 # C. Carte des individus
 # Les couleurs indiquent la qualité de représentation (cos2)
-p3 <fviz_pca_ind(pca22, 
+fviz_pca_ind(pca22, 
                    col.ind = "cos2", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    #repel =-  TRUE,
                    title = "Carte des individus (cos2)")
-plot(p3)
 ```
 
 
 ```{r}
 # D. Le Biplot (Synthèse Individus + Variables)
-p4 <- fviz_pca_biplot(pca22, 
+fviz_pca_biplot(pca22, 
                       repel = TRUE,
                       col.var = "black", 
                       col.ind = "#696969",
                       title = "Biplot ACP")
-plot(p4)
 ```
 
 ```{r}
