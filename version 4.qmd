@@ -1,13 +1,9 @@
 ---
-title: "V2"
+title: "version 4"
 format: html
 editor: visual
 ---
-batiments à 2
-
-# Introduction 
-
-faire 
+batiments en plus et industrie en moins
 
 ## Import des packages
 
@@ -372,35 +368,35 @@ corrplot(corr_mat,type="upper")
 on a une corrélation supérieure à 95% entre résidentiel, routier et tertiaire. Ce qui est tout à fait normal pour résidentiel et tertiaire car ils sont liés à la densité de population humaine, là où il y a du travail, il y a des logements.
 On va donc opter pour un regroupement de ces deux variables sous une seule: bâtiments.
 ```{r}
-Base_dep_finale <- Base_dep %>%
+Base_dep_finale_3 <- Base_dep %>%
   mutate(Batiments = Résidentiel + Tertiaire) %>%
-  select(-Résidentiel, -Tertiaire)
+  select(-Résidentiel, -Tertiaire, -Energie)
 ```
 
 ```{r}
-variables_quanti_finales <- c("Agriculture","CO2_biomasse","Déchets", "Energie","Industrie","Routier","Batiments")  
+variables_quanti_finales_3 <- c("Agriculture","CO2_biomasse","Déchets", "Industrie","Batiments")  
 ```
 
 ```{r}
-kmo_result <- KMO(Base_dep_finale[, variables_quanti_finales])
+kmo_result <- KMO(Base_dep_finale_3[, variables_quanti_finales_3])
 kmo_result
 
 ```
 
 ```{r}
 bartlett_result <- cortest.bartlett(
-  cor(Base_dep_finale[, variables_quanti_finales], use = "pairwise.complete.obs"),
-  n = nrow(Base_dep_finale)
+  cor(Base_dep_finale_3[, variables_quanti_finales_3], use = "pairwise.complete.obs"),
+  n = nrow(Base_dep_finale_3)
 )
 
 bartlett_result
 ```
 ```{r}
-rownames(Base_dep_finale) <- Base_dep_finale$dep_code
+rownames(Base_dep_finale_3) <- Base_dep_finale_3$dep_code
 ```
 
 ```{r}
-mydata <- Base_dep_finale[, c("Agriculture","CO2_biomasse","Déchets","Energie","Industrie","Batiments","Routier")]
+mydata <- Base_dep_finale_3[, c("Agriculture","CO2_biomasse","Déchets","Batiments","Industrie")]
 chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("spearman"))
 
 corr_mat=cor(mydata,method="s")
@@ -408,35 +404,35 @@ det(corr_mat)
 ```
 
 ```{r}
-pca3 <- PCA(Base_dep_finale[, variables_quanti_finales], scale.unit = TRUE, graph = FALSE)
-pca3$eig
+pca7 <- PCA(Base_dep_finale_3[, variables_quanti_finales_3], scale.unit = TRUE, graph = FALSE)
+pca7$eig
 ```
 
 ```{r}
-fviz_pca_var(pca3, col.var = "contrib")
+fviz_pca_var(pca7, col.var = "contrib")
 ```
 
 ```{r}
-fviz_pca_ind(pca3, col.ind = "cos2")
+fviz_pca_ind(pca7, col.ind = "cos2")
 ```
 
 ```{r}
-base_dep_finale_clean <- Base_dep_finale[!Base_dep_finale$dep_code %in% dep_atypiques, ]
+base_dep_finale_clean_3 <-  Base_dep_finale_3[!Base_dep_finale_3$dep_code %in% dep_atypiques, ]
 ```
 
 ```{r}
-pca4 <- PCA(base_dep_finale_clean[, variables_quanti_finales], scale.unit = TRUE, graph = FALSE)
+pca8 <- PCA(base_dep_finale_clean_3[, variables_quanti_finales_3], scale.unit = TRUE, graph = FALSE)
 ```
 
 ```{r}
-fviz_pca_var(pca4, 
+fviz_pca_var(pca8, 
                    col.var = "contrib", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    repel = TRUE,
                    title = "Cercle des corrélations - Variables")
 ```
 ```{r}
-fviz_pca_ind(pca4,  
+fviz_pca_ind(pca8, 
                    col.ind = "cos2", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    #repel =-  TRUE,
