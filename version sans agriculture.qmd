@@ -1,0 +1,200 @@
+---
+title: "scrip sans agriculture"
+format: html
+editor: visual
+---
+
+# ACP sans la variable agriculture 
+
+Afin de tester l'ACP sans la variable agriculture nous modifions ce qui est nécessaire.
+
+```{r}
+base_dep_sans_Agriculture <- subset(Base_dep, select = -Agriculture)
+```
+
+```{r}
+variables_quantitatives_sans_Agriculture <- c("CO2_biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire") 
+```
+
+## Justification 
+#### KMO 
+
+```{r}
+kmo_result <- KMO(base_dep_sans_Agriculture[, variables_quantitatives_sans_Agriculture])
+kmo_result
+```
+
+Nous nous apperçevons que lorsque nous émettons la variable agriculture de notre modèle indice KMO passe de 0,58 à 0,66, ce qui est correct. Cette amélioration de l'indice montre le caratère atypique de la variable agriculture. 
+
+#### Bartlett 
+
+```{r}
+bartlett_result <- cortest.bartlett(
+  cor(base_dep_sans_Agriculture[, variables_quantitatives_sans_Agriculture], use = "pairwise.complete.obs"),
+  n = nrow(base_dep_sans_Agriculture)
+)
+
+bartlett_result
+```
+
+Concerant le test de bratlett celui est toujours significatif p-value < 0 ce qui confirme encore des corrélations suffisante entre les variables dont l'ACP syntétisera.
+
+# ACP 
+## centré réduire 
+
+De la même manière que précédemment, bien que toutes les variables soient dans la même unité elles sont bien dispersé entre elle. Centré réduire est donc nécessaire afin d'éviter que les secteurs les plus émetteur dominent l'analyse. 
+
+```{r}
+pca_sans_agri <- PCA(base_dep_sans_Agriculture[, variables_quantitatives_sans_Agriculture], scale.unit = TRUE, graph = FALSE)
+```
+
+### Choix du nombre de dimenssion
+
+```{r}
+pca_sans_agri$eig
+```
+Ici encore nous décidons de garder 2 axes. Le cummul des 2 composantes principales expliquent 92,5 %  de la variance totale (environ 70 % pour Dim1 et 23 % pour Dim 2 ) ce qui est très bon, ils synthétise l'essentiel de l'information présente dans le modèle. De plus la règle de kaiser nous précise bien de garder seulement les 2 premiers axes car la valeur propre est supérieuru à 1.
+
+```{r}
+fviz_eig(pca_sans_agri)
+```
+
+
+
+```{r}
+fviz_pca_var(pca_sans_agri, col.var = "contrib")
+```
+
+```{r}
+fviz_pca_ind(pca_sans_agri, col.ind = "cos2")
+```
+
+Nous remarquons sur la carte des individus/départements que certains d'entre eux sont très éloigné du profil moyen 95, 94, 93, 76, 13, ils ont surment des psécificité teritorielle.
+Sur l'axe 1 ils sont tiré vers la droite POURQUOI ????? et sur l'axe 2 certains comme le 13 sont tiré vers le haut et certains comme le 76 tiré vers le bas quant au 93 94 et 95 ils sont proche de zéro sur l'axe des abcisses.
+
+```{r}
+res.hcpc <- HCPC(pca, graph = FALSE)
+fviz_cluster(res.hcpc)
+
+```
+3 groupes identifiés
+
+Mais la présence des départements atypiques masque un peu la distinction → il faudra envisager une ACP sans ces départements.
+
+### ACP sans les variables atypiques
+
+```{r}
+dep_atypiques <- c(95, 94, 93, 76, 13)
+base_dep_clean <- base_dep_sans_Agriculture[!base_dep_sans_Agriculture$dep_code %in% dep_atypiques, ]
+
+```
+Les 5 départements ont été retiré 
+
+```{r}
+pca_clean <- PCA(base_dep_clean[, variables_quantitatives_sans_Agriculture], scale.unit = TRUE, graph = FALSE)
+```
+
+
+```{r}
+pca_clean$eig
+fviz_eig(pca_clean)
+```
+
+Ici avec seulement un axe la composante principale est de 81,1 % et selon la règle de Kaiser seulement le premier axe suffit pour synthétiser l'information. 
+
+### Graphique 
+
+2 axes 
+```{r}
+fviz_pca_var(pca_clean,
+             axes = c(1,2),       
+             col.var = "contrib",
+             gradient.cols = c("lightblue", "blue", "darkblue"),
+             repel = TRUE)
+```
+
+ Que axe 1
+```{r}
+# Extraire les contributions des variables sur l'axe 1
+var_contrib <- pca_clean$var$contrib[,1]
+
+# Créer un barplot simple
+barplot(sort(var_contrib, decreasing = TRUE),
+        main = "Contributions des variables à l'axe 1",
+        col = "lightblue",
+        las = 2,        # pour afficher les noms verticalement
+        cex.names = 0.8,
+        ylab = "Contribution (%)")
+
+```
+
+```{r}
+fviz_pca_ind(pca_clean, col.ind = "cos2")
+```
+ 
+ 91 et 75 sont eux aussi dispersé loins du profil moyen BIZZARE
+ 
+```{r}
+# Coordonnées des départements sur l'axe 1
+coord_ax1 <- pca_clean$ind$coord[,1]
+
+# Barplot pour visualiser leur position
+barplot(sort(coord_ax1),
+        main = "Position des départements sur l'axe 1",
+        col = "lightgreen",
+        las = 2,
+        cex.names = 0.7,
+        ylab = "Coordonnée sur l'axe 1")
+
+```
+ 
+ 
+ 
+
+```{r}
+
+
+# B. Cercle des corrélations (Variables)
+# Les couleurs indiquent la contribution (quelles variables créent les axes)
+p2 <- fviz_pca_var(pca_clean, 
+                   col.var = "contrib", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   repel = TRUE,
+                   title = "Cercle des corrélations - Variables")
+plot(p2)
+```
+
+```{r}
+# C. Carte des individus
+# Les couleurs indiquent la qualité de représentation (cos2)
+p3 <- fviz_pca_ind(pca_clean, 
+                  label = base_dep_clean$dep_code,
+                   col.ind = "cos2", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   repel = TRUE,
+                   title = "Carte des individus (cos2)")
+plot(p3)
+```
+
+
+
+### sans départements atypiqe 
+
+```{r}
+dep_atypiques <- c(91,75,95, 94, 93, 76, 13)
+base_dep_clean2 <- base_dep_sans_Agriculture[!base_dep_sans_Agriculture$dep_code %in% dep_atypiques, ]
+```
+
+```{r}
+pca_clean2 <- PCA(base_dep_clean2[, variables_quantitatives_sans_Agriculture], scale.unit = TRUE, graph = FALSE)
+```
+
+
+```{r}
+pca_clean2$eig
+fviz_eig(pca_clean2)
+```
+
+```{r}
+fviz_pca_ind(pca_clean2, col.ind = "cos2")
+```
