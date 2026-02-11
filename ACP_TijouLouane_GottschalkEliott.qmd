@@ -227,7 +227,7 @@ Base_dep <- Base_dep %>%
 str(Base_dep)
 ```
 
-## Analyse des données des variables quantitatives
+## Analyse univarié des variables quantitatives
 
 
 ```{r, include=FALSE}
@@ -273,11 +273,11 @@ tableau_analyse_univ_quanti_dep
 
 On remarque que quelques départements très émetteurs de CO2 tirent fortement la moyenne vers le haut, tandis que la majorité des départements ont des niveaux d’émissions plus faibles.
 
-On peut alors penser que par exemple pour les déchets il y a une forte concentration géographique des infrastructures de traitement des déchets ce qui explique une médiane plutot basse par rapport au maximum. De la même manière on remaque certains département beaucoup plus industrialisé que d'autre
+On peut alors penser que par exemple pour les déchets il y a une forte concentration géographique des infrastructures de traitement des déchets ce qui explique une médiane plutot basse par rapport au maximum. De la même manière on remarque certains département sont beaucoup plus industrialisé que d'autre
 
 En résumer, l’analyse descriptive met en évidence une forte hétérogénéité des émissions de CO2 selon les secteurs et les départements, avec des distributions très asymétriques et la présence de valeurs extrêmes.
 
-Visualisation :
+Visualisation graphique :
 
 ```{r}
 par(mfrow = c(2,4), mar = c(2,2,1,1))
@@ -309,28 +309,26 @@ Les boxplots mettent en évidence la présence de nombreuses valeurs extrêmes p
 
 ### Variables qualitative
 
-La base de données contient deux variables qualitatives (dep_code et dep_nom) correspondant à l’identification des départements. Ces variables servent uniquement de repères pour l’interprétation des résultats. Nous vérifions seulement l’absence de doublons afin de nous assurer que chaque département est bien représenté une seule fois. La réalisation d’un graphique en camembert serait illisible compte tenu du nombre élevé de départements et n’apporterait aucune information supplémentaire à l’analyse.
+La base de données contient deux variables qualitatives (*dep_code* et *dep_nom*) correspondant à l’identification des départements. Ces variables servent uniquement de repères pour l’interprétation des résultats. Nous avons alors seulement vérifié l’absence de doublons afin de nous assurer que chaque département est bien représenté une seule fois. La réalisation d’un graphique en camembert serait illisible compte tenu du nombre élevé de départements et n’apporterait aucune information supplémentaire à l’analyse.
 
 ```{r, include=FALSE}
 sum(duplicated(Base_dep$dep_code))
 sum(duplicated(Base_dep$dep_nom))
 ```
 
-Aucun doublon n'a été détecté.
-
 # 2. Analyse bivariée
 
 ### Variables quantitative - quantitative
 
-```{r}
+```{r, include=FALSE}
 
-mat <- Base_dep %>%
-  select(all_of(variables_quantitatives)) %>%
+mat <- Base_dep |>
+  select(all_of(variables_quantitatives)) |>
   cor(use = "pairwise.complete.obs")
 
 
 
-mat %>%
+mat |>
   as.data.frame() %>%
   mutate(var1 = rownames(.)) %>%
   pivot_longer(-var1, names_to = "var2", values_to = "cor") %>%
