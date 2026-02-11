@@ -27,7 +27,6 @@ Pour ce faire, nous procéderons d’abord à une analyse univariée de chacune 
 [^citepa]: Centre Interprofessionnel Technique d’Études de la Pollution Atmosphérique
 
 
-
 ```{r, include=FALSE}
 
 # -----------------------------
@@ -64,7 +63,7 @@ nrow(Base) # Nombre de ligne
 ```
 
 
-```{r}
+```{r, include=FALSE}
 # -----------------------------
 # RENOMMAGE DES VARIABLES
 # -----------------------------
@@ -84,35 +83,9 @@ Base <- Base %>%
 
 # 1. Analyse univarié
 
-Explication de nos 12 variables :
+Avant toute analyse statistique, il est important de bien prendre connaissance du jeu de données afin de comprendre la distribution des variables et de détecter d’éventuelles anomalies, telles que les valeurs manquantes ou des valeurs abberantes. Nous procéderons donc à une première exploration des données grâce à une analyse univariée de chacune de nos variables.
 
--   **Code_INSEE_commune** : (chr) Code unique à 5 chiffres attribué à chaque commune en France par l’INSEE. Les deux premiers chiffres correspondent au département.
-
--   **Nom_commune** :(chr) Nom de la commune
-
--   **Agriculture** :(num) Emissions de CO₂ liées aux activités agricoles (en tonnes équivalent CO₂)
-
--   **Autres_transports** : (num) Emissions liées aux transports non routiers et non internationaux,comme le transport fluvial, ferroviaire ou local, (en tonnes équivalent CO₂).
-
--   **Autres_transports_international** : (num) Emissions liées aux transports internationaux (en tonnes équivalent CO₂).
-
--   **CO2_biomasse** : (num) Emissions de CO₂ provenant de la biomasse,c’est-à-dire la matière organique d’origine végétale ou animale utilisé pour produire de l'énergie, en tonnes équivalent CO₂.
-
--   **Déchets** : (num) Emissions liées à la gestion des déchets (en tonnes équivalent CO₂).
-
--   **Energie**: (num) Emissions liées à la production et consommation d’énergie (en tonnes équivalent CO₂).
-
--   **Industrie** : (num) Emissions de l’industrie hors énergie, par exemple la fabrication de matériaux, de produits chimiques ou d’autres biens industriels, sans compter les émissions liées à la consommation d’énergie de ces industries), en tonnes équivalent CO₂.
-
--   **Résidentiel** : (num) Emissions liées aux logements et aux habitations, incluant le chauffage, la consommation d’électricité et de gaz (secteur résidentiel), exprimées en tonnes équivalent CO₂.
-
--   **Routier** : (num) Emissions liées au transport routier (en tonnes équivalent CO₂).
-
--   **Tertiaire** : (num) Emissions liées au secteur tertiaire, c’est-à-dire les services comme les bureaux, commerces, administrations, écoles ou hôpitaux, (en tonnes équivalent CO₂).
-
-Aucun problème : toutes nos variables quantitatives sont bien au format numérique, et nos deux variables qualitatives (Commune et Code_INSEE_commune) sont correctement au format caractère.
-
-```{r}
+```{r, include=FALSE}
 # -----------------------------
 # STRUCTURE DE LA BASE
 # -----------------------------
@@ -127,7 +100,7 @@ str(Base)
 # ANALYSE ET TRAITEMENT DES DONNÉES MANQUANTES 
 # ---------------------------------------------
 
-gg_miss_var(Base)
+Données_manquantes <- gg_miss_var(Base)
 
 sum(is.na(Base$Autres_transports_international))
 # 32907 données manquantes 
@@ -150,14 +123,119 @@ gg_miss_var(Base)
 ```
 
 
-On s’aperçoit que les variables *Autres_transports* et *Autres_transports_international* contiennent plus de 25 000 valeurs manquantes sur 35 798 lignes, ce qui représente environ 70 % des données. Étant donné cette proportion très élevée de données manquantes, il est préférable de supprimer ces deux colonnes pour éviter de fausser l’analyse.
+## Données manquantes
+ 
+Pour cette première visualisation d’ensemble nous avons regardé les données manquantes de notre jeu de donnée et nous nous apperçevons que les variables *Autres_transports* et *Autres_transports_international* contiennent plus de 25 000 valeurs manquantes sur 35 798 lignes, ce qui représente environ 70 % des données. Étant donné cette proportion très élevée de données manquantes, nous avons pris la décision de supprimer ces deux colonnes pour éviter de fausser l’analyse.
 
 ```{r}
+Données_manquantes
+```
+
+Après avoir supprimé les colonnes avec trop de NA, il reste quelques valeurs manquantes sur certains secteurs.
+Ces NA sont peu nombreux par rapport à l’échantillon total de communes.
+Comme nous agrégeons ensuite les communes par département (en faisant la moyenne des émissions par secteur), ces quelques valeurs manquantes n’ont pas d’impact significatif : la moyenne par département sera calculée sur les communes disponibles.
+
+## Agrégation par département
+
+Pour simplifier l’analyse et faciliter la synthèse des données, nous créons une nouvelle variable **département**, correspondant aux deux premiers chiffres du code INSEE de chaque commune.
+
+Cette nouvelle variable nous permet de regrouper les communes par département, et ainsi de travailler sur une analyse plus globale, plus facile à manipuler et à interpréter.
+Nous allons alors passé à une interprétation des profils moyens de communes au sein des départements, et non comme des niveaux totaux d’émissions départementales.
+
+Concernant la vue des données manquantes, il ne reste plus qu’une valeur manquante pour le secteur de l’agriculture, correspondant à Paris. Après vérification, cette valeur est affilié à 0, car elle reflète uniquement les arrondissements de Paris où aucune activité agricole n’est réalisée.
+
+L’analyse univariée est donc réalisée sur cette base agrégée de 96 départements, car c’est sur celle-ci que sera effectuée l’analyse en composantes principales.
+
+
+```{r, include=FALSE}
+# ------------------------------------
+# Création de la variable département
+# ------------------------------------
+
+Base$departement <- substr(Base$Code_INSEE_commune, 1, 2)
+
+table(Base$departement)
+
+sum(is.na(Base$departement))
+
+
+# ---------------------------------------------
+# Import d'une nouvelle base de donnée (INSEE)
+# ---------------------------------------------
+
+Base_INSEE <- read_csv("communes-france-2025.csv")
+
+# On garde seulement 2 variables sur les 47: le nom du département et le code de celui-ci
+
+commune_reduite <- Base_INSEE[, c( "dep_nom",
+                                   "dep_code")]
+
+# Dans la base de donnée initiale on garde seulement une ligne pour chaque numéros de département différent
+
+communes_reduite_unique <- commune_reduite |>
+  group_by(dep_code) |> 
+  slice(1) |>
+  ungroup()
+
+# ------------------
+# Jointure gauche
+# ------------------
+
+Base_dep <- left_join(
+  Base,
+  communes_reduite_unique,
+  by = c("departement" = "dep_code"),
+  keep = TRUE)
+
+sum(is.na(Base_dep$dep_nom))
+
+# On supprime les colonnes dont nous avons plus besoin
+
+Base_dep <- Base_dep[, !colnames(Base_dep) %in% c(
+  "INSEE commune",
+  "Commune","departement")]
+
+# -----------------------------
+# Regroupement par code postal
+# -----------------------------
+
+
+Base_dep <- Base_dep |>
+  group_by(dep_code) |>            
+  summarise(
+    dep_nom = first(dep_nom),
+    Agriculture = mean(Agriculture, na.rm = TRUE),
+    CO2_biomasse = mean(CO2_biomasse, na.rm = TRUE),
+    Déchets = mean(Déchets, na.rm = TRUE),
+    Energie = mean(Energie, na.rm = TRUE),
+    Industrie = mean(Industrie, na.rm = TRUE),
+    Résidentiel = mean(Résidentiel, na.rm = TRUE),
+    Routier = mean(Routier, na.rm = TRUE),
+    Tertiaire = mean(Tertiaire, na.rm = TRUE))
+
+# Vérification des données manquantes 
+gg_miss_var(Base_dep)
+
+# identification de la valeur manquante
+Base_dep[!complete.cases(Base_dep), ]
+
+# Il s'agit de Paris (intra-muros), étant donné qu'aucune activité agricole n'y est réalisée, on décide d'imputer la valeur 0.
+
+Base_dep <- Base_dep %>% 
+  mutate(across(everything(), ~replace_na(., 0)))
+
+str(Base_dep)
+```
+
+## Analyse des données des variables quantitatives
+
+
+```{r, include=FALSE}
 variables_quantitatives <- c("Agriculture","CO2_biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")             
 ```
 
-```{r}
-tableau <- lapply(names(Base[variables_quantitatives]), function(var) {
+```{r, include=FALSE}
+tableau_analyse_univ_quanti_commune <- lapply(names(Base[variables_quantitatives]), function(var) {
   x <- Base[[var]]
   if(is.numeric(x)) {
     data.frame(
@@ -169,120 +247,11 @@ tableau <- lapply(names(Base[variables_quantitatives]), function(var) {
       Ecart_type = sd(x, na.rm = TRUE),
       stringsAsFactors = FALSE)}
 }) |> bind_rows()
-tableau
+
 ```
 
-## Création de la variable département
-
-Le fichier contient des données pour toutes les communes françaises, ce qui représente plusieurs milliers de lignes, soit 35 798 observations. Travailler à ce niveau de détail ralenti les calculs et rend l’analyse moins lisible, notamment pour l’ACP. Pour simplifier l’analyse et faciliter la synthèse des données, nous créons une nouvelle variable *departement* en récupérant les deux premiers chiffres du code INSEE de chaque commune, correspondant au code du département.
-
-Cela nous permet par la suite de regrouper les communes par département et de passer à une analyse plus globale, plus facile à manipuler et à interpréter.
-
-```{r}
-Base$departement <- substr(Base$Code_INSEE_commune, 1, 2)
-```
-
-```{r}
-table(Base$departement)
-```
-
-On vérifie si il y a des données manquantes dans la nouvelle variable dans le cas où elle aurait été mal créer
-
-```{r}
-sum(is.na(Base$departement))
-```
-
-## Import d'une nouvelle base de donnée (INSEE)
-
-```{r}
-Base_INSEE <- read_csv("communes-france-2025.csv")
-```
-
-On garde seulement 2 variables sur les 47, le nom du département et le code de celui-ci
-
-```{r}
-commune_reduite <- Base_INSEE[, c( "dep_nom",
-                                   "dep_code")]
-```
-
-On garde seulement une ligne pour chaque numéros de département différent
-
-```{r}
-communes_reduite_unique <- commune_reduite %>%
-  group_by(dep_code) %>%  
-  slice(1) %>%
-  ungroup()
-```
-
-Jointure gauche, on garde toutes les lignes de la base de donnée et on rajoute la colone dep_nom ( nom du département ) si il y a des correspondancse au niveau des codes de département
-
-```{r}
-Base_dep <- left_join(
-  Base,
-  communes_reduite_unique,
-  by = c("departement" = "dep_code"),
-  keep = TRUE)
-```
-
-```{r}
-sum(is.na(Base_dep$dep_nom))
-```
-
-On supprime les colonnes dont nous avons plus besoin
-
-```{r}
-Base_dep <- Base_dep[, !colnames(Base_dep) %in% c(
-  "INSEE commune",
-  "Commune","departement")]
-```
-
-```{r}
-Base_dep <- Base_dep %>%
-  group_by(dep_code) %>%              # regrouper par code postal
-  summarise(
-    dep_nom = first(dep_nom),
-    Agriculture = mean(Agriculture, na.rm = TRUE),
-    CO2_biomasse = mean(CO2_biomasse, na.rm = TRUE),
-    Déchets = mean(Déchets, na.rm = TRUE),
-    Energie = mean(Energie, na.rm = TRUE),
-    Industrie = mean(Industrie, na.rm = TRUE),
-    Résidentiel = mean(Résidentiel, na.rm = TRUE),
-    Routier = mean(Routier, na.rm = TRUE),
-    Tertiaire = mean(Tertiaire, na.rm = TRUE))
-```
-
-```{r}
-gg_miss_var(Base_dep)
-```
-
-```{r}
-# identification de la valeur manquante
-Base_dep[!complete.cases(Base_dep), ]
-```
-
-Il s'agit de Paris (intra-muros), étant donné qu'aucune activité agricole n'y est réalisée, on décide d'imputer la valeur 0.
-
-```{r}
-Base_dep <- Base_dep %>% 
-  mutate(across(everything(), ~replace_na(., 0)))
-```
-
-```{r}
-str(Base_dep)
-```
-
-Les données communales ont été agrégées au niveau départemental en calculant, pour chaque département, la moyenne des émissions de CO₂ par secteur des communes qui le composent.
-
-Les résultats doivent être interprétés comme des profils moyens de communes au sein des départements, et non comme des niveaux totaux d’émissions départementales.
-
-Le passage d’une échelle communale à une échelle départementale permet de réduire la taille du jeu de données et de rendre par la suite l’analyse des corrélations et l’ACP plus lisibles et interprétables.
-
-## Analyse univarié
-
-### Variables quantitatives
-
-```{r}
-tableau <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
+```{r, include=FALSE}
+tableau_analyse_univ_quanti_dep <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
   x <- Base_dep[[var]]
   if(is.numeric(x)) {
     data.frame(
@@ -296,7 +265,10 @@ tableau <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
     )
   }
 }) |> bind_rows()
-tableau
+```
+
+```{r}
+tableau_analyse_univ_quanti_dep
 ```
 
 On remarque que quelques départements très émetteurs de CO2 tirent fortement la moyenne vers le haut, tandis que la majorité des départements ont des niveaux d’émissions plus faibles.
@@ -339,7 +311,7 @@ Les boxplots mettent en évidence la présence de nombreuses valeurs extrêmes p
 
 La base de données contient deux variables qualitatives (dep_code et dep_nom) correspondant à l’identification des départements. Ces variables servent uniquement de repères pour l’interprétation des résultats. Nous vérifions seulement l’absence de doublons afin de nous assurer que chaque département est bien représenté une seule fois. La réalisation d’un graphique en camembert serait illisible compte tenu du nombre élevé de départements et n’apporterait aucune information supplémentaire à l’analyse.
 
-```{r}
+```{r, include=FALSE}
 sum(duplicated(Base_dep$dep_code))
 sum(duplicated(Base_dep$dep_nom))
 ```
@@ -653,5 +625,11 @@ Base_dep_habs <- Base_dep_habs |>
   select(-Départements, -`...2`) |>
   rename(nbr_habs = `...8`)
 
+```
+
+# Annexe 
+
+```{r}
+tableau_analyse_univ_quanti_commune
 ```
 
