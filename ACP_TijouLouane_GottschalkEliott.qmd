@@ -12,17 +12,28 @@ execute:
   echo: false
 ---
 
-il faut un script R pour tout éxécuter en une seule fois (ou cellule quarto) code fold sur le pdf \> code plié donc moins de place
-
 # Introduction
 
-faire
+Cette étude porte sur les émissions de dioxyde de carbone (CO₂) des départements français par secteur d'activité. Les données proviennent du CITEPA[^citepa], et ont été récupérées sur la plateforme officielle *data.gouv.fr* ([source](https://www.data.gouv.fr/datasets/inventaire-de-gaz-a-effet-de-serre-territorialise/)) 
 
-## Import des packages
+La base recense exactement 12 variables donc 2 qualitatives indiquant le nom de la commune mais aussi son code Insee. Elle contient aussi 10 variables quantitative sur lesquels l'analyse en composante principale se réalisera, ces variables correspondent aux émissions totales des émissions de C02 par secteurs pour chaque communes française pour l'année 2016, comme l'agriculture, l'industrie, le secteur routier, terrtiaire, résidentiels etc
 
-Les packages suivants sont utilisés afin de faciliter l'importation des données, leur nettoyage, l’analyse exploratoire ainsi que la réalisation des analyses statistiques et graphiques nécessaires à l’étude.
+Au fil des années, les activités humaines ont entraîné une augmentation continue des émissions de CO₂, renforçant l’effet de serre et contribuant au réchauffement climatique. Il est donc essentiel de comprendre quels secteurs sont les plus émetteurs afin de mettre en place des politiques efficaces pour réduire ces émissions. Il est également important d’identifier les départements ou régions où la vigilance doit être renforcée, afin que les efforts de réduction soient équitablement répartis sur l’ensemble du territoire.
 
-```{r}
+Notre objectif est de comprendre comment les émissions de CO₂ se répartissent entre les départements français selon les secteurs d’activité et s’il est possible d’identifier des profils départementaux d’émissions.
+
+Pour ce faire, nous procéderons d’abord à une analyse univariée de chacune des variables, puis à une analyse bivariée afin d’étudier les relations entre elles. Ensuite, nous réaliserons une analyse factorielle, et plus particulièrement une analyse en composantes principales (ACP), avant de conclure sur les principaux résultats mis en évidence.
+
+[^citepa]: Centre Interprofessionnel Technique d’Études de la Pollution Atmosphérique
+
+
+
+```{r, include=FALSE}
+
+# -----------------------------
+# IMPORT DES PACKAGES
+# -----------------------------
+
 library(readxl)
 library(tidyverse)
 library(naniar)
@@ -36,32 +47,28 @@ library(ggplot2)
 library(FactoMineR)
 library(factoextra)
 library(psych)
+
 ```
 
-## Import de la base de données
 
-Cette base de données contient les émissions de CO₂ des communes françaises, par secteur (agriculture, transport, énergie, industrie ...). Les données viennent du CITEPA et nous l'avons trouver sur la plateforme officielle *data.gouv.fr* ([source](https://www.data.gouv.fr/datasets/inventaire-de-gaz-a-effet-de-serre-territorialise/))
+```{r, include=FALSE}
 
-```{r}
+# -----------------------------
+# IMPORT DE LA BASE DE DONNÉES
+# -----------------------------
+
 Base <- read_xlsx("IGT - Pouvoir de réchauffement global.xlsx")
+head(Base) # Première vue des données 
+names(Base) # Nom des variables 
+nrow(Base) # Nombre de ligne
 ```
 
-## Vérification des données importées
-
-On regarde les premières lignes de la base de donnée avec pour s’assurer que les données ont été correctement importées et que les colonnes correspondent bien aux informations attendues.
 
 ```{r}
-head(Base)
-```
+# -----------------------------
+# RENOMMAGE DES VARIABLES
+# -----------------------------
 
-Vérification des noms des colonnes de la base de données et du nombre de ligne.
-
-```{r}
-names(Base)
-nrow(Base)
-```
-
-```{r}
 Base <- Base %>%
   rename(
     Industrie = `Industrie hors-énergie`,
@@ -73,7 +80,9 @@ Base <- Base %>%
 
 ```
 
-## Description des Variabes
+
+
+# 1. Analyse univarié
 
 Explication de nos 12 variables :
 
@@ -101,27 +110,25 @@ Explication de nos 12 variables :
 
 -   **Tertiaire** : (num) Emissions liées au secteur tertiaire, c’est-à-dire les services comme les bureaux, commerces, administrations, écoles ou hôpitaux, (en tonnes équivalent CO₂).
 
-## Structure de la base de donnée
-
-Vérification des types des variables. Cela permet de vérifier que les colonnes sont bien classées en numériques ou caractères avant de poursuivre l’analyse.
-
-```{r}
-str(Base)
-```
-
 Aucun problème : toutes nos variables quantitatives sont bien au format numérique, et nos deux variables qualitatives (Commune et Code_INSEE_commune) sont correctement au format caractère.
 
-## Vérification des données manquantes
-
-Il est à présent temps de vérifier si il y a des données manquantes dans nos variables
-
 ```{r}
-gg_miss_var(Base)
+# -----------------------------
+# STRUCTURE DE LA BASE
+# -----------------------------
+
+str(Base)
+
 ```
 
-On s’aperçoit que les variables *Autres_transports* et *Autres_transports_international* contiennent plus de 25 000 valeurs manquantes sur 35 798 lignes, ce qui représente environ 70 % des données. Étant donné cette proportion très élevée de données manquantes, il est préférable de supprimer ces deux colonnes pour éviter de fausser l’analyse.
 
-```{r}
+```{r, include=FALSE}
+# ---------------------------------------------
+# ANALYSE ET TRAITEMENT DES DONNÉES MANQUANTES 
+# ---------------------------------------------
+
+gg_miss_var(Base)
+
 sum(is.na(Base$Autres_transports_international))
 # 32907 données manquantes 
 sum(is.na(Base$Autres_transports))
@@ -130,23 +137,20 @@ sum(is.na(Base$Industrie))
 #1308
 sum(is.na(Base$Energie))
 #1308
-```
 
-### Suppression des 2 variables avec plus de 80 % de NA
+# Suppression des 2 variables avec plus de 80 % de NA
 
-```{r}
 Base <- Base[, !colnames(Base) %in% c(
   "Autres_transports",
   "Autres_transports_international")]
-```
 
-On s'aperçoit qu'il reste toujours quelques variables avec des NA
+# On s'aperçoit qu'il reste toujours quelques variables avec des NA
 
-```{r}
 gg_miss_var(Base)
 ```
 
-# 1. Analyse univarié
+
+On s’aperçoit que les variables *Autres_transports* et *Autres_transports_international* contiennent plus de 25 000 valeurs manquantes sur 35 798 lignes, ce qui représente environ 70 % des données. Étant donné cette proportion très élevée de données manquantes, il est préférable de supprimer ces deux colonnes pour éviter de fausser l’analyse.
 
 ```{r}
 variables_quantitatives <- c("Agriculture","CO2_biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")             
@@ -639,10 +643,15 @@ habs <- read_xlsx("estim-pop-dep-sexe-gca-1975-2026.xlsx", sheet = 2, skip=3 )
 habs <- habs[,c(1,2,8)]
 
 
-Base_dep <- left_join(
-  Base,
+Base_dep_habs <- left_join(
+  Base_dep,
   habs,
-  by = c("Départements" = "8"),
+  by = c("dep_code" = "Départements"),
   keep = TRUE)
+
+Base_dep_habs <- Base_dep_habs |>
+  select(-Départements, -`...2`) |>
+  rename(nbr_habs = `...8`)
+
 ```
 
