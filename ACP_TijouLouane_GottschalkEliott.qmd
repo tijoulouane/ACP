@@ -46,6 +46,7 @@ library(ggplot2)
 library(FactoMineR)
 library(factoextra)
 library(psych)
+library(kableExtra)
 
 ```
 
@@ -100,7 +101,20 @@ str(Base)
 # ANALYSE ET TRAITEMENT DES DONNÉES MANQUANTES 
 # ---------------------------------------------
 
-Données_manquantes <- gg_miss_var(Base)
+Base_non_zero <- Base %>%
+  select(where(~ any(is.na(.))))  # ne garde que les colonnes avec NA
+
+# Graphique avec gg_miss_var
+Données_manquantes <- gg_miss_var(Base_non_zero) +
+  labs(
+    title = "Nombre de données manquantes par variable",
+    x = "Variables",
+    y = "Valeurs manquantes"
+  ) +
+  theme(
+    plot.title = element_text(size = 9, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)) 
+
 
 sum(is.na(Base$Autres_transports_international))
 # 32907 données manquantes 
@@ -110,6 +124,14 @@ sum(is.na(Base$Industrie))
 #1308
 sum(is.na(Base$Energie))
 #1308
+sum(is.na((Base$Agriculture)))
+#62
+sum(is.na((Base$Routier)))
+#20 
+sum(is.na((Base$Résidentiel)))
+#6
+sum(is.na((Base$Déchets)))
+#6
 
 # Suppression des 2 variables avec plus de 80 % de NA
 
@@ -250,6 +272,7 @@ tableau_analyse_univ_quanti_commune <- lapply(names(Base[variables_quantitatives
 
 ```
 
+
 ```{r, include=FALSE}
 tableau_analyse_univ_quanti_dep <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
   x <- Base_dep[[var]]
@@ -266,9 +289,17 @@ tableau_analyse_univ_quanti_dep <- lapply(names(Base_dep[variables_quantitatives
   }
 }) |> bind_rows()
 ```
+Voici le tableau : 
 
 ```{r}
-tableau_analyse_univ_quanti_dep
+tableau_analyse_univ_quanti_dep |>
+  mutate(across(Moyenne:Ecart_type, ~ round(., 2))) |>
+  kbl(
+    caption = "Analyse univariée des variables quantitatives par département",
+    booktabs = TRUE,
+    label = "tab:analyse_dep"
+  ) |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
 ```
 
 On remarque que quelques départements très émetteurs de CO2 tirent fortement la moyenne vers le haut, tandis que la majorité des départements ont des niveaux d’émissions plus faibles.
@@ -318,6 +349,8 @@ sum(duplicated(Base_dep$dep_nom))
 
 # 2. Analyse bivariée
 
+Nous passons dès a présent à l'analyse bivariée afin d'analyser les relations entre nos variables.
+
 ### Variables quantitative - quantitative
 
 ```{r, include=FALSE}
@@ -337,7 +370,7 @@ mat |>
 
 ```
 
-```{r}
+```{r, include=FALSE}
 par(mfrow=c(1,1))  # revenir à un seul graphique par page
 
 plot.new()
@@ -362,13 +395,13 @@ Les variables sont quantitatives, exprimées dans une unité homogène (tonnes �
 
 ### Variables qualitative - qualitative
 
-Les colonnes dep_code et dep_nom contiennent la même information sous des formats différents. Un tableau croisé ou un graphique n’apporterait aucune information supplémentaire et serait illisible.
+Les colonnes dep_code et dep_nom contiennent la même information sous des formats différents. Un tableau croisé ou un graphique n’apporterait aucune information supplémentaire et serait alors illisible.
 
 ### Variables qualitative - quantitative
 
 Répartition des émissions de CO₂ par secteur et par département
 
-```{r}
+```{r, include=FALSE}
 
 plot <- list()
 for (var in variables_quantitatives) {
@@ -390,14 +423,14 @@ plot
 
 Intensité des émissions de CO₂ par secteur activité selon les départements
 
-```{r}
+```{r, include=FALSE}
 Base_long <- melt(Base_dep, id.vars = "dep_nom", 
                   measure.vars = c("Agriculture", "CO2_biomasse", "Déchets", 
                                    "Energie", "Industrie", "Résidentiel", 
                                    "Routier", "Tertiaire"))
 ```
 
-```{r}
+```{r, include=FALSE}
 ggplot(Base_long, aes(x = dep_nom, y = value, fill = variable)) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
@@ -406,7 +439,7 @@ ggplot(Base_long, aes(x = dep_nom, y = value, fill = variable)) +
 
 ```
 
-```{r}
+```{r, include=FALSE}
 ggplot(Base_long, aes(x = variable, y = dep_nom, fill = value)) +
   geom_tile() +
   scale_fill_gradient(low = "white", high = "red") +
@@ -417,6 +450,12 @@ ggplot(Base_long, aes(x = variable, y = dep_nom, fill = value)) +
 ```
 
 Comme observé, les émissions de CO₂ par secteur sont fortement corrélées. Cette redondance complique l’interprétation directe. L’analyse en composantes principales (ACP) permettra de réduire la dimension du jeu de données, de synthétiser l’information et de mettre en évidence les profils départementaux similaires ou distincts.
+
+
+
+
+
+
 
 # 3. Analyse factorielle
 
