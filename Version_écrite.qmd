@@ -439,7 +439,7 @@ mydata <- Base_dep[, c("Agriculture","Biomasse","Déchets","Energie","Industrie"
 chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("pearson"))
 graphe_chart_corr <- recordPlot()
 
-corr_mat=cor(mydata,method="s")
+corr_mat=cor(mydata,method="pearson")
 corrplot(corr_mat, method = 'number',type="upper",number.cex = 0.5)
 graphe_corr_number <- recordPlot()
 
@@ -453,6 +453,15 @@ replayPlot(graphe_corr_color)
 ```
 
 Pour analyser les relations entre les différents secteurs d’émissions de CO₂, nous utilisons la corrélation de Spearman. Bien que toutes les variables soient exprimées en tonnes de CO₂, leurs distributions sont très asymétriques et présentent des valeurs extrêmes. La corrélation de Spearman ou PEARSON???????????????????????????????????????????????????????, basée sur les rangs des valeurs, est moins sensible aux outliers et permet d’identifier les associations monotones entre les secteurs de manière robuste. Elle est donc plus appropriée que la corrélation de Pearson dans ce contexte.
+
+
+ '''
+Pour analyser les relations entre les différents secteurs d’émissions de CO₂, nous utilisons le coefficient de corrélation de Pearson, adapté à l’étude des relations linéaires entre variables quantitatives.
+
+Bien que les distributions présentent une certaine asymétrie et des valeurs extrêmes, la corrélation de Pearson reste pertinente dans le cadre de cette étude, notamment en raison de son lien direct avec l’Analyse en Composantes Principales, qui repose sur la matrice de corrélation.
+'''
+
+À titre de vérification, une corrélation de Spearman, fondée sur les rangs et moins sensible aux valeurs extrêmes, a également été calculée (voir annexe). Les résultats obtenus étant similaires, cela confirme la robustesse des relations observées.
 
 Les variables sont quantitatives, exprimées dans une unité homogène (tonnes équivalent CO₂), et présentent de fortes corrélations, notamment entre les secteurs liés à l’urbanisation, aux transports et à l’activité économique. En particulier, les émissions résidentielle, tertiaire et routière sont très fortement corrélées entre elles (coefficients supérieurs à 0,9), traduisant une importante redondance informationnelle.
 
