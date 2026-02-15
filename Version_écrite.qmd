@@ -437,39 +437,66 @@ cor(Base_dep[,c("Agriculture","Biomasse","Déchets", "Energie","Industrie","Rés
 
 mydata <- Base_dep[, c("Agriculture","Biomasse","Déchets","Energie","Industrie","Résidentiel","Routier","Tertiaire")]
 chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("pearson"))
-graphe_chart_corr <- recordPlot()
+graph_chart_corr_pearson <- recordPlot()
 
 corr_mat=cor(mydata,method="pearson")
 corrplot(corr_mat, method = 'number',type="upper",number.cex = 0.5)
-graphe_corr_number <- recordPlot()
+graph_corr_number_pearson <- recordPlot()
 
 corrplot(corr_mat,type="upper")
-graphe_corr_color <- recordPlot()
+graph_corr_color_pearson <- recordPlot()
 
 ```
 
 ```{r}
-replayPlot(graphe_corr_color)
+replayPlot(graph_corr_color_pearson)
 ```
 
-Pour analyser les relations entre les différents secteurs d’émissions de CO₂, nous utilisons la corrélation de Spearman. Bien que toutes les variables soient exprimées en tonnes de CO₂, leurs distributions sont très asymétriques et présentent des valeurs extrêmes. La corrélation de Spearman ou PEARSON???????????????????????????????????????????????????????, basée sur les rangs des valeurs, est moins sensible aux outliers et permet d’identifier les associations monotones entre les secteurs de manière robuste. Elle est donc plus appropriée que la corrélation de Pearson dans ce contexte.
+Pour analyser les relations entre les variables quantitatives du jeu de données, soit les différents secteurs d’émissions de CO₂, nous utilisons le coefficient de corrélation de Pearson, puisque la matrice de corrélation servira par la suite à l’Analyse en Composantes Principales. 
+
+Bien que toutes les variables soient exprimées en tonnes équivalent CO₂, leurs distributions sont asymétriques et présentent des valeurs extrêmes. Afin de vérifier les relations, nous avons également calculé le coefficient de corrélation de Spearman, fondé sur les rangs et moins sensible aux valeurs aberrantes (voir annexe). Les résultats obtenus sont similaires, ce qui confirme les relations observées entre les secteurs.
+
+De manière générale, les variables quantitatives présentent de fortes corrélations positives. Les matrices de corrélation mettent en évidence des secteurs très corrélé (résidentiel, routier, biomasse et tertiaire) avec des coefficients supérieurs à 0,9 avec le coefficient de Pearson, indiquant une redondance informationnelle. Les départements fortement émetteurs de C02 dans l’un de ces secteurs le sont également dans les autres.
+
+Une autre corrélation très élevée est également observée entre les secteurs de l’énergie et de l’industrie (r ≈ 0,97), cela indique que plus le département émet des émissions de C02 en activité industrielle plus il à aussi tendance à en émettre avec la production énergétique.
+
+À l’inverse, le secteur agricole présente des corrélations faibles et négatives avec les autres variables. Cela indique qu’un département plus spécialisé vers l’agriculture aura un profil d’émissions différent, avec de plus faible émissions dans les autres secteurs que l’agriculture, tout en rappelant que ces relations restent faibles et sans impact important. Enfin on observe cune corrélation quasi nulle entre les émssions lié à l'agriculture et à l'énergie indiquant une absence de relation linéaire. Autrement dit, les variations des émissions agricoles n’expliquent pas celles du secteur énergétique.
+
+Ces corrélations se vérifient également visuellement sur les nuages de points. On observe une forte relation linéaire positive entre les émissions du secteur résidentiel et celles du secteur routier. En revanche, le graphique comparant l’agriculture et le résidentiel montre une relation négative faible. On peut aussi constater l’influence de quelques valeurs extrêmes, qui s’écartent de la tendance générale. Sans ces valeurs, la relation serait probablement encore plus linéaire.
+
+Ces interprétations amènent à penser au recours à une analyse en composantes principales afin de synthétiser l’information et d’identifier des profils territoriaux d’émissions.
 
 
- '''
-Pour analyser les relations entre les différents secteurs d’émissions de CO₂, nous utilisons le coefficient de corrélation de Pearson, adapté à l’étude des relations linéaires entre variables quantitatives.
+```{r}
+par(mfrow = c(1, 2)) 
+plot(Base_dep$Résidentiel, Base_dep$Routier,
+     main = "Résidentiel vs Routier",
+     xlab = "Emissions Résidentielles",
+     ylab = "Emissions Routières",
+     pch = 19)
+abline(lm(Routier ~ Résidentiel, data = Base_dep), col = "red", lwd = 2)
 
-Bien que les distributions présentent une certaine asymétrie et des valeurs extrêmes, la corrélation de Pearson reste pertinente dans le cadre de cette étude, notamment en raison de son lien direct avec l’Analyse en Composantes Principales, qui repose sur la matrice de corrélation.
-'''
 
-À titre de vérification, une corrélation de Spearman, fondée sur les rangs et moins sensible aux valeurs extrêmes, a également été calculée (voir annexe). Les résultats obtenus étant similaires, cela confirme la robustesse des relations observées.
+plot(Base_dep$Agriculture, Base_dep$Résidentiel,
+     main = "Agriculture vs Résidentiel",
+     xlab = "Emissions Agriculture",
+     ylab = "Emissions Résidentielles",
+     pch = 19)
+abline(lm(Résidentiel ~ Agriculture, data = Base_dep),  col = "red", lwd = 2)
 
-Les variables sont quantitatives, exprimées dans une unité homogène (tonnes équivalent CO₂), et présentent de fortes corrélations, notamment entre les secteurs liés à l’urbanisation, aux transports et à l’activité économique. En particulier, les émissions résidentielle, tertiaire et routière sont très fortement corrélées entre elles (coefficients supérieurs à 0,9), traduisant une importante redondance informationnelle.
+```
 
-À l’inverse, le secteur agricole présente des corrélations faibles et négatives avec les autres variables, suggérant un profil d’émissions distinct. Cette structure justifie pleinement le recours à une analyse en composantes principales afin de synthétiser l’information et d’identifier des profils territoriaux d’émissions.
 
 ### Variables qualitative - qualitative
 
-Les colonnes dep_code et dep_nom contiennent la même information sous des formats différents. Un tableau croisé ou un graphique n’apporterait aucune information supplémentaire et serait alors illisible.
+Les variables *dep_code* et *dep_nom* contiennent la même information sous des formats différents. Par conséquent, la réalisation d’un tableau de contingence, d’un test du χ² ou de graphiques croisés n’apporterait aucune information supplémentaire et serait alors illisible.
+
+```{r, include=FALSE}
+length(unique(paste(Base_dep$dep_code, Base_dep$dep_nom)))
+```
+
+Nous avons vérifié,que les 96 lignes correspondent bien à des combinaisons différentes, à l’aide de la fonction *unique()*, ce qui confirme que chaque code est associé à son nom. L'analyse bivariée pour ces variables n’est donc pas utile
+
 
 ### Variables qualitative - quantitative
 
@@ -525,7 +552,34 @@ ggplot(Base_long, aes(x = variable, y = dep_nom, fill = value)) +
 
 Comme observé, les émissions de CO₂ par secteur sont fortement corrélées. Cette redondance complique l’interprétation directe. L’analyse en composantes principales (ACP) permettra de réduire la dimension du jeu de données, de synthétiser l’information et de mettre en évidence les profils départementaux similaires ou distincts.
 
+```{r}
+library(ggplot2)
+library(reshape2)
+library(dplyr)
 
+Base_long <- melt(Base_dep, id.vars = "dep_nom", 
+                  measure.vars = c("Agriculture", "Biomasse", "Déchets", 
+                                   "Energie", "Industrie", "Résidentiel", 
+                                   "Routier", "Tertiaire"))
+library(dplyr)
+library(ggplot2)
+
+# Pour chaque secteur, garder les 10 départements les plus émetteurs
+Base_top10 <- Base_long %>%
+  group_by(variable) %>%
+  slice_max(value, n = 10) %>%  # top 10 par secteur
+  ungroup()
+
+# Boxplots
+ggplot(Base_top10, aes(x = reorder(dep_nom, value), y = value, fill = variable)) +
+  geom_boxplot() +
+  coord_flip() +
+  facet_wrap(~ variable, scales = "free") +  # un graphique par secteur
+  labs(title = "Top 10 départements – Boxplots des émissions par secteur",
+       x = "Département", y = "Émissions (tonnes CO₂ eq)")
+
+
+```
 
 
 
@@ -783,7 +837,25 @@ plot(density(Base_dep$Tertiaire, na.rm = TRUE), main = "Emission CO2 - Tertiaire
 ```
 
 ```{r}
-replayPlot(graphe_chart_corr)
-replayPlot(graphe_corr_number)
+replayPlot(graph_chart_corr_pearson)
+replayPlot(graph_corr_number_pearson)
+```
+
+```{r}
+plot.new()
+cor(Base_dep[,c("Agriculture","Biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")], use="complete.obs",method = c("spearman"))
+
+
+mydata <- Base_dep[, c("Agriculture","Biomasse","Déchets","Energie","Industrie","Résidentiel","Routier","Tertiaire")]
+chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("spearman"))
+graph_chart_corr_spearman <- recordPlot()
+
+corr_mat=cor(mydata,method="spearman")
+corrplot(corr_mat, method = 'number',type="upper",number.cex = 0.5)
+graph_corr_number_spearman <- recordPlot()
+
+corrplot(corr_mat,type="upper")
+graph_corr_color_spearman <- recordPlot()
+
 ```
 
