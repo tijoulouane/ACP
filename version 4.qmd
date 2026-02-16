@@ -3,6 +3,7 @@ title: "version 4"
 format: html
 editor: visual
 ---
+
 batiments en plus et industrie en moins
 
 ## Import des packages
@@ -219,7 +220,6 @@ Base_dep <- Base_dep[, !colnames(Base_dep) %in% c(
   "Commune","departement")]
 ```
 
-
 ```{r}
 Base_dep <- Base_dep %>%
   group_by(dep_code) %>%              # regrouper par code postal
@@ -235,15 +235,17 @@ Base_dep <- Base_dep %>%
     Tertiaire = mean(Tertiaire, na.rm = TRUE))
 ```
 
-
 ```{r}
 gg_miss_var(Base_dep)
 ```
+
 ```{r}
 # identification de la valeur manquante
 Base_dep[!complete.cases(Base_dep), ]
 ```
+
 Il s'agit de Paris (intra-muros), étant donné qu'aucune activité agricole n'y est réalisée, on décide d'imputer la valeur 0.
+
 ```{r}
 Base_dep <- Base_dep %>% 
   mutate(across(everything(), ~replace_na(., 0)))
@@ -365,8 +367,9 @@ corrplot(corr_mat, method = 'number',type="upper",number.cex = 0.5)
 corrplot(corr_mat,type="upper")
 
 ```
-on a une corrélation supérieure à 95% entre résidentiel, routier et tertiaire. Ce qui est tout à fait normal pour résidentiel et tertiaire car ils sont liés à la densité de population humaine, là où il y a du travail, il y a des logements.
-On va donc opter pour un regroupement de ces deux variables sous une seule: bâtiments.
+
+on a une corrélation supérieure à 95% entre résidentiel, routier et tertiaire. Ce qui est tout à fait normal pour résidentiel et tertiaire car ils sont liés à la densité de population humaine, là où il y a du travail, il y a des logements. On va donc opter pour un regroupement de ces deux variables sous une seule: bâtiments.
+
 ```{r}
 Base_dep_finale_3 <- Base_dep %>%
   mutate(Batiments = Résidentiel + Tertiaire) %>%
@@ -391,6 +394,7 @@ bartlett_result <- cortest.bartlett(
 
 bartlett_result
 ```
+
 ```{r}
 rownames(Base_dep_finale_3) <- Base_dep_finale_3$dep_code
 ```
@@ -431,6 +435,7 @@ fviz_pca_var(pca8,
                    repel = TRUE,
                    title = "Cercle des corrélations - Variables")
 ```
+
 ```{r}
 fviz_pca_ind(pca8, 
                    col.ind = "cos2", 
@@ -438,4 +443,3 @@ fviz_pca_ind(pca8,
                    #repel =-  TRUE,
                    title = "Carte des individus (cos2)")
 ```
-
