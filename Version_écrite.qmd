@@ -16,7 +16,9 @@ execute:
 
 Au fil des années, les activités humaines ont entraîné une augmentation continue des émissions de CO2, renforçant continuellement l’effet de serre et aggravant le réchauffement climatique. Il est donc essentiel de comprendre quels secteurs sont les plus émetteurs afin de mettre en place des politiques efficaces pour réduire ces émissions. Il est également important d’identifier les départements ou régions où la vigilance doit être renforcée, afin que les efforts de réduction soient équitablement répartis sur l’ensemble du territoire.
 
-Cette étude porte sur les émissions de dioxyde de carbone (CO2) des départements français par secteur d'activité. Les données proviennent du CITEPA[^citepa], et ont été récupérées sur la plateforme officielle *data.gouv.fr* ([source](https://www.data.gouv.fr/datasets/inventaire-de-gaz-a-effet-de-serre-territorialise/)) 
+Cette étude porte sur les émissions de dioxyde de carbone (CO2) des départements français par secteur d'activité. Les données proviennent du CITEPA[^1], et ont été récupérées sur la plateforme officielle *data.gouv.fr* ([source](https://www.data.gouv.fr/datasets/inventaire-de-gaz-a-effet-de-serre-territorialise/))
+
+[^1]: Centre Interprofessionnel Technique d’Études de la Pollution Atmosphérique
 
 La base recense exactement 12 variables donc 2 qualitatives indiquant le nom de la commune mais aussi son code Insee. Elle contient aussi 10 variables quantitatives sur lesquelles l'analyse en composante principale se réalisée, ces variables correspondent aux émissions totales des émissions de C02 par secteurs pour chaque communes française pour l'année 2016, comme l'agriculture, l'industrie, le secteur routier, terrtiaire, résidentiel etc
 
@@ -24,10 +26,7 @@ Notre objectif est de comprendre comment les émissions de CO2 se répartissent 
 
 Pour ce faire, nous procéderons d’abord à une analyse univariée de chacune des variables, puis à une analyse bivariée afin d’étudier les relations entre elles. Ensuite, nous réaliserons une analyse factorielle, et plus particulièrement une analyse en composantes principales (ACP), avant de conclure sur les principaux résultats mis en évidence.
 
-[^citepa]: Centre Interprofessionnel Technique d’Études de la Pollution Atmosphérique
-
 \newpage
-
 
 ```{r, include=FALSE}
 
@@ -53,7 +52,6 @@ library(tidytext)
 
 ```
 
-
 ```{r, include=FALSE}
 
 # -----------------------------
@@ -65,7 +63,6 @@ head(Base) # Première vue des données
 names(Base) # Nom des variables 
 nrow(Base) # Nombre de ligne
 ```
-
 
 ```{r, include=FALSE}
 # -----------------------------
@@ -83,8 +80,6 @@ Base <- Base %>%
 
 ```
 
-
-
 # 1. Analyse univariée
 
 Avant toute analyse statistique, il est important de bien prendre connaissance du jeu de données afin de comprendre la distribution des variables et de détecter d’éventuelles anomalies, telles que les valeurs manquantes ou des valeurs abberantes. Nous procéderons donc à une première exploration des données grâce à une analyse univariée de chacune de nos variables.
@@ -98,24 +93,23 @@ str(Base)
 
 ```
 
-
 ```{r, include=FALSE}
 # ---------------------------------------------
 # ANALYSE ET TRAITEMENT DES DONNÉES MANQUANTES 
 # ---------------------------------------------
 
-Base_non_zero <- Base %>%
+Base_non_zero <- Base |>
   select(where(~ any(is.na(.))))  # ne garde que les colonnes avec NA
 
 # Graphique avec gg_miss_var
 Données_manquantes <- gg_miss_var(Base_non_zero) +
   labs(
-    title = "Nombre de données manquantes par variable",
+    title = "Graphique 1: Visualisation des données manquantes par variable",
     x = "Variables",
     y = "Valeurs manquantes"
   ) +
   theme(
-    plot.title = element_text(size = 9, face = "bold"),
+    plot.title = element_text(size = 6, face = "bold"),
     axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 
@@ -147,18 +141,16 @@ Base <- Base[, !colnames(Base) %in% c(
 gg_miss_var(Base)
 ```
 
-
-
-## Traitement des valeurs manquantes 
+## Traitement des valeurs manquantes
 
 Dans un premier temps, nous examinons la présence de valeurs manquantes au sein du jeu de données. Cette étape est essentielle car un taux élevé de données manquantes peut biaiser les analyses statistiques ultérieures.
 
-Nous observons que les variables *Autres_transports* et *Autres_transports_international* contiennent plus de 25 000 valeurs manquantes sur un total de 35 798 observations, ce qui représente environ 70 % des données. Étant donné cette proportion très élevée de données manquantes, nous avons pris la décision de supprimer ces deux colonnes pour éviter de fausser l’analyse.
-
-
 ```{r,.width=3, fig.height=3}
+# Graphique 1:  Visualisation des données manquantes par variable
 Données_manquantes
 ```
+
+Nous observons que les variables *Autres_transports* et *Autres_transports_international* contiennent plus de 25 000 valeurs manquantes sur un total de 35 798 observations, ce qui représente environ 70 % des données. Étant donné cette proportion très élevée de données manquantes, nous avons pris la décision de supprimer ces deux colonnes pour éviter de fausser l’analyse.
 
 Après avoir supprimé les variables avec trop de valeurs manquantes, comme le montre le graphique d'autres observations sont manquantes dans certains secteurs.
 
@@ -170,16 +162,15 @@ Comme nous agrégeons ensuite les communes par département (en faisant la moyen
 
 Pour simplifier l’analyse et faciliter la synthèse des données, nous créons une nouvelle variable *département*, correspondant aux deux premiers chiffres du code INSEE de chaque commune.
 
-Cette nouvelle variable nous permet de regrouper les communes par département, et ainsi de travailler sur une analyse plus globale, plus facile à manipuler et à interpréter.
-Nous allons alors passé à une interprétation des profils moyens de communes au sein des départements, et non comme des niveaux totaux d’émissions départementales.
+Cette nouvelle variable nous permet de regrouper les communes par département, et ainsi de travailler sur une analyse plus globale, plus facile à manipuler et à interpréter. Nous allons alors passé à une interprétation des profils moyens de communes au sein des départements, et non comme des niveaux totaux d’émissions départementales.
 
 Concernant la vue des données manquantes, il ne reste plus qu’une valeur manquante pour le secteur de l’agriculture, correspondant au département de Paris. Après examen des données communales, toutes les valeurs pour les arrondissements (du 1er au 20e) sont manquantes pour ce secteur.
 
-Cette absence de données reflète la réalité territoriale, Paris intra-muros est un département quasi entièrement urbanisé, où l’activité agricole est inexistante dans les arrondissements et même très peu présente dans la proche couronne[^agriculture_paris]. La valeur manquante a alors été imputée par 0.
+Cette absence de données reflète la réalité territoriale, Paris intra-muros est un département quasi entièrement urbanisé, où l’activité agricole est inexistante dans les arrondissements et même très peu présente dans la proche couronne[^2]. La valeur manquante a alors été imputée par 0.
+
+[^2]: https://driaaf.ile-de-france.agriculture.gouv.fr/les-espaces-agricoles-representent-2-5-du-territoire-de-paris-et-de-la-proche-a3478.html
 
 L’analyse univariée est donc réalisée sur cette base agrégée de 96 départements, car c’est sur celle-ci que sera effectuée l’analyse en composantes principales.
-
-[^agriculture_paris]: https://driaaf.ile-de-france.agriculture.gouv.fr/les-espaces-agricoles-representent-2-5-du-territoire-de-paris-et-de-la-proche-a3478.html
 
 ```{r, include=FALSE}
 # ------------------------------------
@@ -250,7 +241,7 @@ Base_dep <- Base_dep |>
 # Vérification des données manquantes 
 gg_miss_var(Base_dep)
 
-# identification de la valeur manquante
+# Identification de la valeur manquante
 Base_dep[!complete.cases(Base_dep), ]
 
 # Il s'agit de Paris (intra-muros), étant donné qu'aucune activité agricole n'y est réalisée, on décide d'imputer la valeur 0.
@@ -263,12 +254,12 @@ str(Base_dep)
 
 ## Analyse univariée des variables quantitatives
 
-
 ```{r, include=FALSE}
 variables_quantitatives <- c("Agriculture","Biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")             
 ```
 
 ```{r, include=FALSE}
+# Tableau 1 : Statistique descriptive des variables quantitative pour les émissions de C02 par commune (en annexe)
 tableau_analyse_univ_quanti_commune <- lapply(names(Base[variables_quantitatives]), function(var) {
   x <- Base[[var]]
   if(is.numeric(x)) {
@@ -285,7 +276,10 @@ tableau_analyse_univ_quanti_commune <- lapply(names(Base[variables_quantitatives
 ```
 
 
+
 ```{r, include=FALSE}
+
+# Tableau 2: Statistiques descriptives des variables quantitatives des émissions de CO2 pour les 96 départements français
 tableau_analyse_univ_quanti_dep <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
   x <- Base_dep[[var]]
   if(is.numeric(x)) {
@@ -304,7 +298,8 @@ tableau_analyse_univ_quanti_dep <- lapply(names(Base_dep[variables_quantitatives
 }) |> bind_rows()
 ```
 
-Le tableau ci-dessous présente les statistiques descriptives des émissions de CO2 par secteur pour les 96 départements français
+
+\underline{Tableau 2} : Statistiques descriptives des variables quantitatives des émissions de CO2 pour les 96 départements français
 
 ```{r}
 tableau_analyse_univ_quanti_dep |>
@@ -315,7 +310,11 @@ tableau_analyse_univ_quanti_dep |>
 
 On remarque que quelques départements très émetteurs de CO2 tirent fortement la moyenne vers le haut, tandis que la majorité des départements ont des niveaux d’émissions plus faibles. Par exemple, pour les déchets, la forte concentration géographique des infrastructures de traitement explique une médiane plutôt basse par rapport au maximum. De même, certains départements sont beaucoup plus industrialisés que d’autres.
 
+Le même tableau est disponible en annexe sur les émissions de C02 par secteur mais au niveau communale (Tableau 1)
+
 Pour mieux comprendre la répartition des émissions de CO2 par secteur dans les départements français, nous avons représenté des histogrammes afin de visualiser la distribution des émissions pour chacune des variables, c’est-à-dire pour chaque secteur.
+
+\underline{Graphiques 2} : Histogrammes des variables quantitatives
 
 ```{r}
 options(scipen = 999)
@@ -334,9 +333,10 @@ hist(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Emission C02 - Terrtiaire",
 
 La plupart des secteurs montrent une distribution étalée vers la droite, autrement dit la plupart des départements sont concentrés sur les mêmes niveaux d'émission de CO2, sauf quelques départements qui se distinguent par des émissions très élevées. À cause des émissions très élevées de certains départements pour quelques secteurs, cela écrase visuellement la distribution de la majorité des données.
 
-Pour mieux voir la répartition des émissions de la majorité des départements, nous avons ajusté l'échelle des histogrammes en nous focalisant sur les valeurs les plus fréquentes (voir annexe). On observe ainsi que pour les secteurs industrie, résidentiel, routier, biomasse et tertiaire, les émissions de la grande majorité des départements se concentrent entre leur minimum et environ 10 000 tonnes équivalent CO2. Le secteur de l'énergie présente une concentration plus basse, entre 34 et 1 000 tonnes, tandis que celui des déchets se situe essentiellement entre 60 et 2 000 tonnes. Les concentrations d'émission restent présentes, soulignant des spécialisations territoriales marquées.
+Pour mieux voir la répartition des émissions de la majorité des départements, nous avons ajusté l'échelle des histogrammes en nous focalisant sur les valeurs les plus fréquentes (voir annexe graphiques 3). On observe ainsi que pour les secteurs industrie, résidentiel, routier, biomasse et tertiaire, les émissions de la grande majorité des départements se concentrent entre leur minimum et environ 10 000 tonnes équivalent CO2. Le secteur de l'énergie présente une concentration plus basse, entre 34 et 1 000 tonnes, tandis que celui des déchets se situe essentiellement entre 60 et 2 000 tonnes. Les concentrations d'émission restent présentes, soulignant des spécialisations territoriales marquées.
 
 ```{r, include=FALSE}
+#Graphiques 3 : Histogrammes zoomés des variables quantitatives
 options(scipen = 999)
 
 par(mfrow = c(2,4), mar = c(2,2,1,1))
@@ -356,6 +356,7 @@ Contrairement aux autres secteurs, les émissions du secteur agricole sont plus 
 Ces conclusions peuvent se traduire par l'activité agricole globalement bien répartie sur l'ensemble du territoire, contrairement aux zones industrielles plus localisées.
 
 ```{r, include=FALSE}
+# Graphiques 4 : Densités des variables quantitatives
 options(scipen = 999)
 
 par(mfrow = c(2,4), mar = c(2,2,2,1))
@@ -377,10 +378,12 @@ plot(density(Base_dep$Routier, na.rm = TRUE),main = "Emission CO2 - Routier",xla
 plot(density(Base_dep$Tertiaire, na.rm = TRUE), main = "Emission CO2 - Tertiaire", xlab = "Tertiaire",col = "firebrick",lwd = 2, cex.main = 0.8)
 
 ```
-L’analyse des densités complète les histogrammes(voir annexe) en faisant apparaître des formes moins visibles. Elle met notamment en évidence, dans le secteur agricole, l’existence de deux groupes distincts de départements (une majorité à environ 2000 tonnes et un autre groupe à environ 6000 tonnes) . Pour les autres secteurs, les pics marqués confirment une spécialisation territoriale, la majorité des départements présentent des émissions proches, tandis que les niveaux d'émission plus élevés concernent seulement quelques groupes de départements
+
+L’analyse des densités complète les histogrammes(voir annexe graphiques 4) en faisant apparaître des formes moins visibles. Elle met notamment en évidence, dans le secteur agricole, l’existence de deux groupes distincts de départements (une majorité à environ 2000 tonnes et un autre groupe à environ 6000 tonnes) . Pour les autres secteurs, les pics marqués confirment une spécialisation territoriale, la majorité des départements présentent des émissions proches, tandis que les niveaux d'émission plus élevés concernent seulement quelques groupes de départements
 
 Ces distributions asymétriques nous amènent alors à regarder les boxplots afin d’identifier les valeurs potentiellement aberrantes ou atypiques.
 
+\underline{Graphiques 5} : Boxplots des émissions de CO2 par secteur
 ```{r}
 par(mfrow = c(2,4), mar = c(2,2,1,1))
 
@@ -393,12 +396,12 @@ boxplot(Base_dep$Résidentiel, xlab = "Résidentiel", main = "Boxplot - Résiden
 boxplot(Base_dep$Routier, xlab = "Routier", main = "Boxplot - Routier", col = "mediumvioletred",cex.main = 0.8)
 boxplot(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Boxplot - Tertiaire", col = "firebrick",cex.main = 0.8)
 ```
+
 L’écrasement des boîtes interquartiles vers le bas pour la majorité des secteurs nous amène à l’hypothèse que la grande majorité des départements français présente des émissions relativement homogènes, et que l’essentiel de la pollution nationale est concentré sur l’ensemble du territoire.
 
 Les boxplots mettent également en évidence la présence de nombreuses valeurs extrêmes pour la plupart des secteurs. Ces valeurs ne traduisent pas des erreurs de mesure, mais reflètent des spécificités territoriales fortes (départements très industrialisés, fortement urbanisés ou spécialisés dans la production d’énergie). Elles ont donc été conservées, car elles constituent une information pertinente pour l’analyse des profils d’émissions.
 
 En résumé, l’analyse descriptive met en évidence une forte homogénéité des émissions pour la majorité des départements, mais également une hétérogénéité marquée pour certains départements, avec des distributions très asymétriques et la présence de valeurs extrêmes. Cela amène à l’intuition de la réalisation d’une ACP afin d’identifier les profils départementaux
-
 
 ## Analyse univariée des variables qualitatives
 
@@ -431,7 +434,8 @@ mat |>
 
 ```
 
-```{r}
+```{r, include=FALSE}
+# Graphiques 6: Corrélation des émissions de CO₂ par secteur (Pearson)
 plot.new()
 cor(Base_dep[,c("Agriculture","Biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")], use="complete.obs",method = c("pearson"))
 
@@ -449,13 +453,35 @@ graph_corr_color_pearson <- recordPlot()
 
 ```
 
+
+```{r, include=FALSE}
+# Graphiques 8 : Corrélation des émissions de CO₂ par secteur (Spearman)
+plot.new()
+cor(Base_dep[,c("Agriculture","Biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")], use="complete.obs",method = c("spearman"))
+
+
+mydata <- Base_dep[, c("Agriculture","Biomasse","Déchets","Energie","Industrie","Résidentiel","Routier","Tertiaire")]
+chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("spearman"))
+graph_chart_corr_spearman <- recordPlot()
+
+corr_mat=cor(mydata,method="spearman")
+corrplot(corr_mat, method = 'number',type="upper",number.cex = 0.5)
+graph_corr_number_spearman <- recordPlot()
+
+corrplot(corr_mat,type="upper")
+graph_corr_color_spearman <- recordPlot()
+
+```
+
+
+\underline{Graphique 7} : Corrélation des émissions de CO2 par secteur (Pearson)
 ```{r}
 replayPlot(graph_corr_color_pearson)
 ```
 
-Pour analyser les relations entre les variables quantitatives du jeu de données, soit les différents secteurs d’émissions de CO₂, nous utilisons le coefficient de corrélation de Pearson, puisque la matrice de corrélation servira par la suite à l’Analyse en Composantes Principales. 
+Pour analyser les relations entre les variables quantitatives du jeu de données, soit les différents secteurs d’émissions de CO₂, nous utilisons le coefficient de corrélation de Pearson, puisque la matrice de corrélation servira par la suite à l’Analyse en Composantes Principales(voir l'enssemble des graphiques de la corrélation de pearson en annexe graphiques 6).
 
-Bien que toutes les variables soient exprimées en tonnes équivalent CO₂, leurs distributions sont asymétriques et présentent des valeurs extrêmes. Afin de vérifier les relations, nous avons également calculé le coefficient de corrélation de Spearman, fondé sur les rangs et moins sensible aux valeurs aberrantes (voir annexe). Les résultats obtenus sont similaires, ce qui confirme les relations observées entre les secteurs.
+Bien que toutes les variables soient exprimées en tonnes équivalent CO₂, leurs distributions sont asymétriques et présentent des valeurs extrêmes. Afin de vérifier les relations, nous avons également calculé le coefficient de corrélation de Spearman, fondé sur les rangs et moins sensible aux valeurs aberrantes (voir annexe graphiques 8). Les résultats obtenus sont similaires, ce qui confirme les relations observées entre les secteurs.
 
 De manière générale, les variables quantitatives présentent de fortes corrélations positives. Les matrices de corrélation mettent en évidence des secteurs très corrélé (résidentiel, routier, biomasse et tertiaire) avec des coefficients supérieurs à 0,9 avec le coefficient de Pearson, indiquant une redondance informationnelle. Les départements fortement émetteurs de C02 dans l’un de ces secteurs le sont également dans les autres. On remarque aussi une corrélation linéaire croissante quasi parfaite entre le secteur résidentiel et terrtiaire une fois le coeficient de corrélation de pearson arrondis (0,996).
 
@@ -467,6 +493,7 @@ Ces corrélations se vérifient également visuellement sur les nuages de points
 
 Ces interprétations amènent à penser au recours à une analyse en composantes principales afin de synthétiser l’information et d’identifier des profils territoriaux d’émissions.
 
+\underline{Graphique 9} : Relations entre les émissions de CO₂ de différents secteurs avec droites de régression
 
 ```{r}
 par(mfrow = c(1, 2)) 
@@ -487,7 +514,6 @@ abline(lm(Résidentiel ~ Agriculture, data = Base_dep),  col = "red", lwd = 2)
 
 ```
 
-
 ### Variables qualitative - qualitative
 
 Les variables *dep_code* et *dep_nom* contiennent la même information sous des formats différents. Par conséquent, la réalisation d’un tableau de contingence, d’un test du χ² ou de graphiques croisés n’apporterait aucune information supplémentaire et serait alors illisible.
@@ -497,7 +523,6 @@ length(unique(paste(Base_dep$dep_code, Base_dep$dep_nom)))
 ```
 
 Nous avons vérifié,que les 96 lignes correspondent bien à des combinaisons différentes, à l’aide de la fonction *unique()*, ce qui confirme que chaque code est associé à son nom. L'analyse bivariée pour ces variables n’est donc pas utile
-
 
 ### Variables qualitative - quantitative
 
@@ -512,6 +537,8 @@ Base_long <- melt(Base_dep, id.vars = "dep_nom",
                                    "Routier", "Tertiaire"))
 ```
 
+\underline{Graphique 10} : Répartition des émissions de CO₂ par secteur et département
+
 ```{r,fig.width=12, fig.height=6}
 ggplot(Base_long, aes(x = dep_nom, y = value, fill = variable)) +
   geom_bar(stat = "identity") +
@@ -523,14 +550,14 @@ ggplot(Base_long, aes(x = dep_nom, y = value, fill = variable)) +
 
 Le graphique présente la répartition moyenne des émissions de CO2 par secteur pour chaque département en 2016. Les différences de hauteur des barres montrent que certains départements émettent beaucoup plus de CO2 que les autres. C'est notamment le cas pour Paris avec les secteurs routier et résidentiel. Les proportions des secteurs varient selon les départements, mettant en évidence des profils d’émissions distincts, comme l'industrie pour le département des Bouches-du-Rhône.
 
-Ce graphique permet d’identifier visuellement les départements et secteurs les plus émetteurs, mais afin de voir cela de manière plus détaillée, en annexe se trouve le détail de chaque secteur, permettant d'observer réellement quels sont les départements les plus émetteurs de CO2 dans chaque secteur. En parallèle, le Top 10 des départements les plus émetteurs de CO2 est observable en annexe.
+Ce graphique permet d’identifier visuellement les départements et secteurs les plus émetteurs, mais afin de voir cela de manière plus détaillée, en annexe (graphiques 11) se trouve le détail de chaque secteur, permettant d'observer réellement quels sont les départements les plus émetteurs de CO2 dans chaque secteur. En parallèle, le Top 10 des départements les plus émetteurs de CO2 est observable en annexe (graphiques 13).
 
 De manière générale, on observe que Paris, les Hauts-de-Seine, la Seine-Saint-Denis, les Bouches-du-Rhône et le Val-de-Marne se situent dans la plupart des top 10 d'émission de chaque secteur, à l’exception du secteur de l'agriculture, qui regroupe plutôt les départements de Loire-Atlantique, Vendée ou même la Mayenne.
 
 On observe qu’un département figurant dans un des Top 10 a tendance à l'être dans les autres secteurs, à l’exception de l’agriculture, ce qui reflète les corrélations vues précédemment
 
-
 ```{r, fig.width=12, fig.height=6, include=FALSE}
+# Graphiques 11 : Détails émissions de C02 par secteurs et département 
 
 plot <- list()
 for (var in variables_quantitatives) {
@@ -550,10 +577,8 @@ for (var in variables_quantitatives) {
 plot
 ```
 
-
-
-
 ```{r,fig.width=12, fig.height=16, include=FALSE}
+# Graphique 12 : Heatmap des émissions de CO₂ par secteur et département
 ggplot(Base_long, aes(x = variable, y = dep_nom, fill = value)) +
   geom_tile() +
   scale_fill_gradient(low = "white", high = "red") +
@@ -563,10 +588,8 @@ ggplot(Base_long, aes(x = variable, y = dep_nom, fill = value)) +
 
 ```
 
-
-
 ```{r, fig.width=12, fig.height=14, include=FALSE}
-
+# Graphique 13 : Top 10 des départements les plus émétteurs par secteurs 
 Base_long <- melt(Base_dep, id.vars = "dep_nom", 
                   measure.vars = c("Agriculture", "Biomasse", "Déchets", 
                                    "Energie", "Industrie", "Résidentiel", 
@@ -595,25 +618,20 @@ ggplot(Base_top10,
 
 ```
 
-
-
-
-
 # 3. Analyse factorielle
 
-## Justification de l'Analyse en composantes principales 
+## Justification de l'Analyse en composantes principales
 
 Nous passons maintenant à la partie d’analyse factorielle. Nous choisissons de réaliser une analyse en composantes principales (ACP), car notre jeu de données est composé principalement de variables quantitatives. L’ACP simplifie l’analyse en réduisant le nombre de variables sans perte significative d’information. Elle est particulièrement adaptée ici, car certaines variables sont corrélées, ce qui permet de synthétiser les relations entre secteurs. Elle permettra également de mieux comprendre les données et d’observer les regroupements de départements aux profils d'émissions de CO2 similaires.
 
-
 ### Indice KMO
 
-Afin de vérifier l’adéquation de nos données à une Analyse en Composantes Principales, nous avons calculé l’indice KMO. Celui-ci permet d’évaluer si les corrélations entre variables sont suffisamment structurées pour être synthétisées par une analyse factorielle.
+Afin de vérifier l’adéquation de nos données à une Analyse en Composantes Principales, nous avons calculé l’indice KMO (Résultat test 1 en annexe). Celui-ci permet d’évaluer si les corrélations entre variables sont suffisamment structurées pour être synthétisées par une analyse factorielle.
 
 ```{r, include=FALSE}
-kmo_result <- KMO(Base_dep[, variables_quantitatives])
-kmo_result
-
+# Test 1 
+kmo_result_ACP1 <- KMO(Base_dep[, variables_quantitatives])
+kmo_result_ACP1
 ```
 
 Le résultat de l'indice KMO est supérieur à 0,6, il est exactement de 0,66, indiquant une adéquation moyenne, il y a des corrélations suffisantes entre certaines variables pour justifier une ACP ainsi l'analyse factorielle est pertinente.
@@ -621,6 +639,7 @@ Le résultat de l'indice KMO est supérieur à 0,6, il est exactement de 0,66, i
 ### Test de Bartlett
 
 ```{r, include=FALSE}
+# Test 2 
 sapply(Base_dep[, c("Agriculture","Biomasse","Déchets","Energie",
                     "Industrie","Résidentiel","Routier","Tertiaire")],
        function(x) shapiro.test(x)$p.value)
@@ -628,45 +647,35 @@ sapply(Base_dep[, c("Agriculture","Biomasse","Déchets","Energie",
 ```
 
 ```{r, include=FALSE}
+# test 3 
 bartlett_result <- cortest.bartlett(
   cor(Base_dep[, variables_quantitatives], use = "pairwise.complete.obs"),
   n = nrow(Base_dep))
-
 bartlett_result
 ```
-Les tests de normalité de Shapiro-Wilk indiquent que toutes les variables sont significativement non normales (p-value < 0,05), ce qui signifie qu’elles ne suivent pas une loi normale.
 
-Nous avons quand même réalisé le test de Bartlett pour vérifier la présence de corrélations suffisantes entre les variables. Ce test est très significatif, et permet de rejeter l’hypothèse nulle d’indépendance entre les secteurs et confire que des corrélations importantes existent. Cependant, étant donné l’asymétrie des données, ce test n'est pas fiable. La justification de l'ACP se fait donc essentiellement sur l’indice KMO.
+Les tests de normalité de Shapiro-Wilk (Résultat test 2 en annexe) indiquent que toutes les variables sont significativement non normales (p-value \< 0,05), ce qui signifie qu’elles ne suivent pas une loi normale.
 
-### Déterminant 
+Nous avons quand même réalisé le test de Bartlett (Résultat test 3 en annexe) pour vérifier la présence de corrélations suffisantes entre les variables. Ce test est très significatif, et permet de rejeter l’hypothèse nulle d’indépendance entre les secteurs et confire que des corrélations importantes existent. Cependant, étant donné l’asymétrie des données, ce test n'est pas fiable. La justification de l'ACP se fait donc essentiellement sur l’indice KMO.
 
-```{r}
-det(corr_mat_pearson)
+### Déterminant
+
+```{r, include=FALSE}
+# Test 4 
+déterminant_ACP_1 <- det(corr_mat_pearson)
+déterminant_ACP_1
 ```
-Ensuite, nous vérifions le déterminant de la matrice de corrélation de Pearson, qui est très faible (~6,67e-9). Cela indique que certaines variables sont très fortement corrélées, mais pas parfaitement (comme observé dans l’analyse bivariée). Cette situation confirme que l’ACP est appropriée pour synthétiser l’information contenue dans les différents secteurs.
+
+Ensuite, nous vérifions le déterminant de la matrice de corrélation de Pearson (Résultat test 4 en annexe), qui est très faible (\~6,67e-9). Cela indique que certaines variables sont très fortement corrélées, mais pas parfaitement (comme observé dans l’analyse bivariée). Cette situation confirme que l’ACP est appropriée pour synthétiser l’information contenue dans les différents secteurs.
 
 Nous réalisons dans un premier temps une ACP sur l’ensemble des variables initiales, car le déterminant n’est pas nul et ne nécessite donc pas la suppression immédiate de variables.
 
-
-Puis, afin d’évaluer l’impact des corrélations quasi parfaites et d’améliorer l’analyse, nous effectuons une ACP après regroupement des variables très fortement corrélées (corrélation > 0,97). Ainsi, les secteurs biomasse, résidentiel, tertiaire et routier sont regroupés en un premier bloc, et énergie et industrie dans un second. 
-
-
-```{r}
-Base_dep$Bloc_residentiel <- rowMeans(Base_dep[, c("Biomasse","Résidentiel","Tertiaire","Routier")])
-
-```
+Puis, afin d’évaluer l’impact des corrélations quasi parfaites et d’améliorer l’analyse, nous effectuons une ACP après regroupement des variables très fortement corrélées (corrélation \> 0,97). Ainsi, les secteurs biomasse, résidentiel, tertiaire et routier sont regroupés en un premier bloc, et énergie et industrie dans un second.
 
 
-```{r}
-Base_dep$Bloc_indus <- rowMeans(Base_dep[, c("Energie","Industrie")])
+## ACP sur l'enssemble des données
 
-```
-
-
-
-# ACP sur l'enssemble des données 
-
-```{r, inlcude = FALSE}
+```{r, inlcude = FALSE, warning=FALSE}
 # --------------------------
 # Code département en index
 # --------------------------
@@ -675,7 +684,6 @@ rownames(Base_dep) <- Base_dep$dep_code
 ```
 
 Bien que toutes les variables soient exprimées dans la même unité (tonnes équivalent CO₂), leurs dispersions et ordres de grandeur diffèrent fortement selon les secteurs. Le centrage-réduction est donc nécessaire afin d’éviter que les secteurs les plus émetteurs ne dominent l’analyse et afin de mettre en évidence la structure relative des émissions entre départements.
-
 
 ```{r, include=FALSE}
 pca_full <- PCA(Base_dep[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
@@ -698,6 +706,8 @@ Selon la règle de Kaiser, on ne conserve que les composantes dont la valeur pro
 
 ### Éboulis des valeurs propres
 
+\underline{Graphique 14} : Éboulis des valeurs propres de l’ACP 
+
 ```{r, warning=FALSE,.width=3, fig.height=3 }
 fviz_eig(pca_full, 
          addlabels = TRUE,
@@ -708,7 +718,8 @@ fviz_eig(pca_full,
 
 L’éboulis des valeurs propres montre une chute marquée après la deuxième composante, ce qui suggère que les deux premiers axes concentrent l’essentiel de l’information pertinente.
 
-```{r}
+\underline{Graphique 15} : Contribution des variables à l’ACP 
+```{r, warning=FALSE}
 fviz_pca_var(pca_full, col.var = "contrib")
 ```
 
@@ -716,16 +727,18 @@ fviz_pca_var(pca_full, col.var = "contrib")
 pca_full$var$contrib
 pca_full$var$cos2
 
-# Graphique des contributions des variables à l'axe 1 et 2
-fviz_contrib(pca_full, choice = "var", axes = 1, top = 10)
-fviz_contrib(pca_full, choice = "var", axes = 2, top = 10)
-``` 
-L’analyse des contributions montre que la première dimension est principalement portée par les secteurs Biomasse, Résidentiel, Tertiaire et Routier, confirmant l’existence d’un bloc fortement corrélé puisque les axes son proche sur le plan. La dimension 1 représente donc un axe pouvant être appelé énergie domestique, tertiaire et mobilité. Le Cos² de ces variables sur Dim 1 est très élevé (Routier : 0,942 ; Biomasse : 0,891 ; Résidentiel : 0,870 ; Tertiaire : 0,871), ce qui indique qu’elles sont très bien représentées sur cette dimension et que Dim 1 reflète fidèlement ce bloc. Graphiquement, les flèches de ces variables sont proches et orientées dans la même direction, illustrant leur forte corrélation.
+# Graphiques 16 et 17 des contributions des variables à l'axe 1 et 2
+Contribution_ACP1_dim1 <- fviz_contrib(pca_full, choice = "var", axes = 1, top = 10)
+Contribution_ACP1_dim2 <- fviz_contrib(pca_full, choice = "var", axes = 2, top = 10)
+```
 
-La deuxième dimension est dominée par les secteurs Énergie et Industrie, la dimension 2 représente donc l'axe secteur industriel. Le Cos² de ces variables sur Dim 2 est relativement élevé (Énergie : 0,619 ; Industrie : 0,538), confirmant qu’elles sont bien représentées sur Dim 2. Les flèches correspondantes sont proches entre elles mais séparées du bloc résidentiel/tertiaire, ce qui souligne leur comportement spécifique.
+L’analyse des contributions montre que la première dimension est principalement portée par les secteurs Biomasse, Résidentiel, Tertiaire et Routier. Cette observation est confirmée graphiquement (voir Graphique 16 en annexe), confirmant l’existence d’un bloc fortement corrélé puisque les axes son proche sur le plan. La dimension 1 représente donc un axe pouvant être appelé énergie domestique, tertiaire et mobilité. Le Cos² de ces variables sur Dim 1 est très élevé (Routier : 0,942 ; Biomasse : 0,891 ; Résidentiel : 0,870 ; Tertiaire : 0,871), ce qui indique qu’elles sont très bien représentées sur cette dimension et que Dim 1 reflète fidèlement ce bloc. Graphiquement, les flèches de ces variables sont proches et orientées dans la même direction, illustrant leur forte corrélation.
+
+La deuxième dimension est dominée par les secteurs Énergie et Industrie, la dimension 2 représente donc l'axe secteur industriel. Cette observation est confirmée graphiquement (voir Graphique 17 en annexe). Le Cos² de ces variables sur Dim 2 est relativement élevé (Énergie : 0,619 ; Industrie : 0,538), confirmant qu’elles sont bien représentées sur Dim 2. Les flèches correspondantes sont proches entre elles mais séparées du bloc résidentiel/tertiaire, ce qui souligne leur comportement spécifique.
 
 Les secteurs Agriculture et Déchets structurent principalement des dimensions secondaires que nous n’avons pas retenues pour l’analyse (Agriculture Cos² Dim 3 : 0,863 ; Déchets Cos² Dim 4 : 0,360), indiquant un comportement plus spécifique et reflétant moins la dynamique générale des principaux blocs sectoriels. Sur le plan, la flèche Agriculture pointe dans la direction opposée au bloc Routier/Biomasse/Résidentiel/Tertiaire, illustrant un comportement différent et une corrélation négative. Cependant, la faible longueur de la flèche du secteur Agriculture indique que cette opposition n’est pas très significative sur le plan, ce qui explique que la corrélation négative reste faible.
 
+\underline{Graphique 18} : Projection des départements sur le plan 
 ```{r,.width=3, fig.height=3}
 fviz_pca_ind(pca_full, col.ind = "cos2")+ ylim(-6.5, 13) + xlim(-3, 17)
 ```
@@ -738,7 +751,7 @@ Sur le graphique des individus, on observe un nuage principal regroupant la majo
 
 Les axes du PCA permettent donc de distinguer les départements « typiques » du nuage principal et ceux ayant des comportements plus atypiques ou extrêmes, facilement repérables graphiquement grâce à leur éloignement.
 
-
+\underline{Graphique 19} : Projection des départements et des variables sur le plan 
 ```{r}
 fviz_pca_biplot(pca_full, 
                 repel = TRUE,        
@@ -746,8 +759,94 @@ fviz_pca_biplot(pca_full,
                 col.ind = "cos2")    
 
 ```
- 
+
 Sur ce graphique combinant les départements et les secteurs d'émissions de CO2, on peut voir plus directement les spécificités des secteurs d'émission par département. En effet, pour le département 13 (Bouches-du-Rhône), on aperçoit qu'il est spécialisé dans l'Énergie et l'Industrie. Pour le département 76 (Seine-Maritime), celui-ci est plus spécialisé dans le bloc des quatre secteurs très corrélés, soit les secteurs Biomasse, Résidentiel, Tertiaire et Routier.
+
+## ACP après regroupement des variables fortement corrélées
+
+```{r, include=FALSE}
+Base_dep_blocs_corrélé <- Base_dep
+```
+
+```{r, warning=FALSE, include=FALSE}
+# ---------------------------------------------------
+# Regroupement des variables corélées dans des blocs 
+# ---------------------------------------------------
+
+Base_dep_blocs_corrélé$Bloc_residentiel <- rowMeans(Base_dep_blocs_corrélé[, c("Biomasse","Résidentiel","Tertiaire","Routier")])
+
+Base_dep_blocs_corrélé$Bloc_indus <- rowMeans(Base_dep_blocs_corrélé[, c("Energie","Industrie")])
+
+# Supprimer les variables d'origine intégrées dans les blocs
+Base_dep_blocs_corrélé <- Base_dep_blocs_corrélé[, !colnames(Base_dep_blocs_corrélé) %in% c("Biomasse","Résidentiel","Tertiaire","Routier","Energie","Industrie")]
+
+
+# Code département en index
+rownames(Base_dep_blocs_corrélé) <- Base_dep_blocs_corrélé$dep_code
+
+```
+
+
+```{r, include=FALSE}
+# -------------------
+# Vérification KMO 
+# -------------------
+# Résultat test 5 
+variables_quantitatives_blocs <- c("Agriculture","Déchets","Bloc_residentiel","Bloc_indus" )
+kmo_result_blocs <- KMO(Base_dep_blocs_corrélé[, variables_quantitatives_blocs])
+kmo_result_blocs
+# Indice KMO supérieur à 0,6, validé 
+
+# -------------------------
+# Vérification déterminant 
+# -------------------------
+# Résultat test 6 
+corr_mat_blocs <- cor(Base_dep_blocs_corrélé[, variables_quantitatives_blocs], use = "complete.obs", method = "pearson")
+det(corr_mat_blocs)
+# déterminant supérieur à 0 donc pas de corrélation parfaite (mieux que l'ancien déterminant calculé)
+```
+
+Comme précisé précédemment, nous avons également réalisé une Analyse en Composantes Principales (ACP) après avoir regroupé les variables très fortement corrélées en blocs. Après ce regroupement, le nombre de variables quantitatives est réduit à quatre blocs principaux (Agriculture, Déchets, Bloc_résidentiel et Bloc_industriel), ce qui permet de limiter la redondance. Bien que ce nombre soit faible, l’analyse reste pertinente pour explorer les relations entre ces blocs mais son but n'est plus concrètement de réduire la dimension.
+
+Nous avons recalculé l’indice KMO (Résultat test 5 en annexe), qui est supérieur à 0,6, indiquant que les corrélations entre variables sont suffisante pour réaliser l'ACP. De plus, le déterminant de la matrice de corrélation (Résultat test 6 en annexe) est bien différent de zéro (0,412), contrairement à la première ACP où il était très proche de zéro, signe d’une forte multicolinéarité. Ces résultats confirment que l’ACP sur les blocs peut être réalisée.
+
+
+```{r, include=FALSE}
+pca_blocs<- PCA(Base_dep_blocs_corrélé[, variables_quantitatives_blocs], scale.unit = TRUE, graph = FALSE)
+```
+
+```{r, include=FALSE}
+# Choix du nombre de dimension 
+
+pca_blocs$eig   
+
+# Graphique 18 : Eboulis des valeurs propres pour l'ACP après regroupement des variables fortement corrélées
+
+Eboulis_blocs <- fviz_eig(pca_blocs, 
+         addlabels = TRUE,
+         main = "Eboulis des valeurs propres") +
+  ylim(0, 78)+
+  theme(plot.title = element_text(size = 12))
+```
+
+
+La première composante principale explique 53 % de la variance, et les deux premières composantes cumulées expliquent 76,7 % de la variance totale. Les composantes 3 et 4 apportent moins de 23 % supplémentaire, ce qui montre que l’essentiel de l’information est capturé par les deux premières composantes. Cette conclusion se confirme par l’éboulis des valeurs propres (voir Graphique 18 en annexe). Selon la règle de Kaiser, seule la première composante devrait être retenue, car sa valeur propre est supérieure à 1. Cependant, la deuxième composante possède une valeur propre proche de 1 (0,95) et, en la conservant, l’ACP permet de capturer une inertie totale supérieure à 53 %. Nous avons donc décidé de retenir les deux premières composantes pour l’analyse.
+
+
+```{r}
+fviz_pca_var(pca_blocs, col.var = "contrib")
+fviz_pca_ind(pca_blocs, col.ind = "cos2")
+```
+
+
+Concernant les département ayant des profils atypiques ils sont toujours visible sur le graphiques des individus 
+
+
+
+
+
+
+
 
 ```{r}
 # --- Analyse des groupes ---
@@ -756,6 +855,7 @@ fviz_cluster(res.hcpc,
              repel = TRUE, 
              main = "Groupes d'individus (Clustering)")
 ```
+
 On remarque sur ce graphe que trois groupes sont bien éloignés des autres départements. On va donc décider de les supprimer car à eux seuls ils "attirent" la dimension 1, empêchant ainsi de bien visualiser les différentes informations.
 
 ```{r}
@@ -785,12 +885,13 @@ fviz_pca_ind(pca22,
                    #repel =-  TRUE,
                    title = "Carte des individus (cos2)")
 ```
-On remarque qu'en enlevant les plus atypiques, d'autres apparaissent. Ce processus se répète de par la présence de départements plus spécifiés que d'autres dans certains domaines.
 
+On remarque qu'en enlevant les plus atypiques, d'autres apparaissent. Ce processus se répète de par la présence de départements plus spécifiés que d'autres dans certains domaines.
 
 Globalement on n'arrive pas à en tirer un quelconque résultat de cette acp vu que seuls quelques département tirent vers eux tout l'axe 1. Même en retirant les plus atypiques, on en obtient de nouveau et ce, en continue. Une solution est donc de créer une nouvelle colonne mesurant les émissions totales du département pour ensuite déterminer un ratio de chaque département pour chaque secteur. On peut ainsi reprendre la base initiale, sans les départements "extrêmes".
 
 # solution 1
+
 ## justification de l'acp
 
 ```{r}
@@ -809,6 +910,7 @@ graph_corr_number_pearson <- recordPlot()
 ```
 
 # tests justificatifs de l'acp
+
 ```{r}
 variables_quantitatives_ratios <- c("Biomasse", "Energie","Industrie","Résidentiel","Routier","Tertiaire","Déchets")
 
@@ -821,12 +923,16 @@ bartlett_result <- cortest.bartlett(
   n = nrow(Base_dep)
 )
 bartlett_result
+
+pca_14 <- PCA(Base_dep[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
 ```
+
 Ici le seul moyen d'avoir un KMO supérieur à 0.5 est en retirant la variable agriculture, qui n'est pas corrélée avec les autres.
 
 ```{r}
 pca_14$eig
 ```
+
 On conserve uniquement les deux premières dimensions.
 
 ```{r, warning=FALSE,.width=3, fig.height=3 }
@@ -836,6 +942,7 @@ fviz_eig(pca_14,
   ylim(0, 78)+
   theme(plot.title = element_text(size = 12))
 ```
+
 Les deux premières dimensions permettent de capter presque trois quarts des informations pertinentes, ce qui est suffisant.
 
 ```{r}
@@ -852,6 +959,7 @@ fviz_pca_ind(pca_14,
                    #repel =-  TRUE,
                    title = "Carte des individus (cos2)")
 ```
+
 ```{r}
 fviz_pca_biplot(pca_14, 
                 repel = TRUE,        
@@ -860,8 +968,7 @@ fviz_pca_biplot(pca_14,
 
 ```
 
-#Solution 2
-On va ici faire une acp sur l'intensité d'émissions par habitant.
+#Solution 2 On va ici faire une acp sur l'intensité d'émissions par habitant.
 
 ```{r}
 habs <- read_xlsx("estim-pop-dep-sexe-gca-1975-2026.xlsx", sheet = 2, skip=3 )
@@ -882,6 +989,7 @@ rownames(Base_dep_habs) <- Base_dep_habs$dep_code
 
 
 ```
+
 ```{r}
 kmo_result <- KMO(Base_dep_habs[, variables_quantitatives])
 kmo_result
@@ -893,6 +1001,7 @@ bartlett_result <- cortest.bartlett(
 )
 bartlett_result
 ```
+
 ```{r}
 pca_16 <- PCA(Base_dep_habs[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
 
@@ -907,6 +1016,7 @@ fviz_pca_ind(pca_16,
                    #repel =-  TRUE,
                    title = "Carte des individus (cos2)")
 ```
+
 ```{r}
 dep_atypiques_habs <- c(13, 70,77,60,45,70,76,93,94,95)
 base_dep_habs <- Base_dep_habs[!Base_dep_habs$dep_code %in% dep_atypiques_habs, ]
@@ -924,14 +1034,18 @@ fviz_pca_ind(pca_15,
                    #repel =-  TRUE,
                    title = "Carte des individus (cos2)")
 ```
+
 On observe le même cas que tout à l'heure avec quelques département aux extrêmes qui attirent à eux la dimensions 1. Cette méthode ne va donc pas pouvoir nous apporter grand chose mais on remarque malgré tout que ce sont les mêmes départements qui ressortent en tant que "valeur atypique".
 
-# Annexe 
+# Annexe
+
+\underline{Tableau 1} : Statistiques descriptives des variables quantitatives des émissions de CO2 par commune
 
 ```{r}
 tableau_analyse_univ_quanti_commune
 ```
 
+\underline{Graphiques 3} : Histogrammes zoomés des variables quantitatives
 ```{r}
 options(scipen = 999)
 
@@ -948,6 +1062,7 @@ hist(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Emission C02 - Terrtiaire",
 
 ```
 
+\underline{Graphiques 4} : Densités des variables quantitatives
 ```{r}
 options(scipen = 999)
 
@@ -970,29 +1085,21 @@ plot(density(Base_dep$Routier, na.rm = TRUE),main = "Emission CO2 - Routier",xla
 plot(density(Base_dep$Tertiaire, na.rm = TRUE), main = "Emission CO2 - Tertiaire", xlab = "Tertiaire",col = "firebrick",lwd = 2, cex.main = 0.8)
 ```
 
+\underline{Graphique 6} : Corrélation des émissions de CO2 par secteur (Pearson)
 ```{r}
 replayPlot(graph_chart_corr_pearson)
 replayPlot(graph_corr_number_pearson)
 ```
 
+\underline{Graphique 8} : Corrélation des émissions de CO2 par secteur (Spearman)
+
 ```{r}
-plot.new()
-cor(Base_dep[,c("Agriculture","Biomasse","Déchets", "Energie","Industrie","Résidentiel","Routier","Tertiaire")], use="complete.obs",method = c("spearman"))
-
-
-mydata <- Base_dep[, c("Agriculture","Biomasse","Déchets","Energie","Industrie","Résidentiel","Routier","Tertiaire")]
-chart.Correlation(mydata, histogram=TRUE, pch=19,method = c("spearman"))
-graph_chart_corr_spearman <- recordPlot()
-
-corr_mat=cor(mydata,method="spearman")
-corrplot(corr_mat, method = 'number',type="upper",number.cex = 0.5)
-graph_corr_number_spearman <- recordPlot()
-
-corrplot(corr_mat,type="upper")
-graph_corr_color_spearman <- recordPlot()
-
+replayPlot(graph_chart_corr_spearman)
+replayPlot(graph_corr_number_spearman)
+replayPlot(graph_corr_color_spearman)
 ```
 
+\underline{Graphique 11} : Détails des émissions de CO2 par secteur et par département
 ```{r, fig.width=12, fig.height=6}
 
 plot <- list()
@@ -1005,14 +1112,14 @@ for (var in variables_quantitatives) {
     labs(
       title = paste("Émissions de CO2 – secteur", var, "par département"),
       x = "Département",
-      y = "Émissions (tonnes équivalent CO2)"
-    )
+      y = "Émissions (tonnes équivalent CO2)")
   
  plot[[var]] <- p}
 
 plot
 ```
 
+\underline{Graphique 12} : Heatmap des émissions de CO2 par secteur et département
 
 ```{r,fig.width=12, fig.height=16}
 ggplot(Base_long, aes(x = variable, y = dep_nom, fill = value)) +
@@ -1024,7 +1131,7 @@ ggplot(Base_long, aes(x = variable, y = dep_nom, fill = value)) +
 
 ```
 
-
+\underline{Graphique 13} : Top 10 des départements les plus émétteurs par secteurs 
 ```{r, fig.width=12, fig.height=14}
 
 Base_long <- melt(Base_dep, id.vars = "dep_nom", 
@@ -1055,5 +1162,57 @@ ggplot(Base_top10,
 
 ```
 
+\underline{Résultat test 1} : Résultats de l’indice KMO pour l’ACP complète
+
+```{r}
+kmo_result_ACP1
+```
+
+\underline{Résultat test 2} : Test de normalité de Shapiro-Wilk pour les variables quantitatives
+```{r}
+sapply(Base_dep[, c("Agriculture","Biomasse","Déchets","Energie",
+                    "Industrie","Résidentiel","Routier","Tertiaire")],
+       function(x) shapiro.test(x)$p.value)
+```
+
+\underline{Résultat test 3} : Résultats du test de sphéricité de Bartlett pour l'ACP complète
+```{r}
+bartlett_result
+```
+
+\underline{Résultat test 4} : Déterminant de la matrice de corrélation pour l'ACP complète
+```{r}
+déterminant_ACP_1
+```
+
+\underline{Graphique 16} : Contribution des variables à la première composante principale
+
+```{r}
+Contribution_ACP1_dim1
+```
+
+\underline{Graphique 17} : Contribution des variables à la deuxième composante principale 
+```{r}
+Contribution_ACP1_dim2
+```
+
+\underline{Résultat test 5} : Résultats de l’indice KMO pour l’ACP à 4 variables 
+```{r}
+kmo_result_blocs
+```
+
+
+\underline{Résultat test 6} : Déterminant de la matrice de corrélation pour l'ACP à 4 variables
+
+```{r}
+det(corr_mat_blocs)
+```
+
+\underline{Graphique 18} : Eboulis des valeurs propres pour l'ACP après regroupement des variables fortement corrélées
+```{r}
+Eboulis_blocs
+```
+
 ## autres ACP réalisées
-###
+
+### 
