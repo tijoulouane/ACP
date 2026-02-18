@@ -146,8 +146,8 @@ gg_miss_var(Base)
 
 Dans un premier temps, nous examinons la présence de valeurs manquantes au sein du jeu de données. Cette étape est essentielle car un taux élevé de données manquantes peut biaiser les analyses statistiques ultérieures.
 
-```{r,.width=2, fig.height=2}
-# Graphique 1:  Visualisation des données manquantes par variable
+```{r,.width=5, fig.height=2.5}
+# Graphique 1:  Visualisation des données manquantes par variable 
 Données_manquantes
 ```
 
@@ -279,7 +279,6 @@ tableau_analyse_univ_quanti_commune <- lapply(names(Base[variables_quantitatives
 
 
 ```{r, include=FALSE}
-
 # Tableau 2: Statistiques descriptives des variables quantitatives des émissions de CO2 pour les 96 départements français
 tableau_analyse_univ_quanti_dep <- lapply(names(Base_dep[variables_quantitatives]), function(var) {
   x <- Base_dep[[var]]
@@ -403,7 +402,7 @@ boxplot(Base_dep$Routier, xlab = "Routier", main = "Boxplot - Routier", col = "m
 boxplot(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Boxplot - Tertiaire", col = "firebrick",cex.main = 0.8)
 ```
 
-L’écrasement des boîtes interquartiles vers le bas pour la majorité des secteurs nous amène à l’hypothèse que la grande majorité des départements français présente des émissions relativement homogènes, et que l’essentiel de la pollution nationale est concentré sur l’ensemble du territoire.
+Les boites à moustache situé vers le bas pour la majorité des secteurs nous amène à l’hypothèse que la grande majorité des départements français présentent des émissions relativement homogènes, et que l’essentiel de la pollution nationale est concentré sur l’ensemble du territoire.
 
 Les boxplots mettent également en évidence la présence de nombreuses valeurs extrêmes pour la plupart des secteurs. Ces valeurs ne traduisent pas des erreurs de mesure, mais reflètent des spécificités territoriales fortes (départements très industrialisés, fortement urbanisés ou spécialisés dans la production d’énergie). Elles ont donc été conservées, car elles constituent une information pertinente pour l’analyse des profils d’émissions.
 
@@ -485,9 +484,9 @@ graph_corr_color_spearman <- recordPlot()
 replayPlot(graph_corr_color_pearson)
 ```
 
-Pour analyser les relations entre les variables quantitatives du jeu de données, soit les différents secteurs d’émissions de CO₂, nous utilisons le coefficient de corrélation de Pearson, puisque la matrice de corrélation servira par la suite à l’Analyse en Composantes Principales^[voir annexe: Graphiques 6].
+Pour analyser les relations entre les variables quantitatives du jeu de données, soit les différents secteurs d’émissions de CO2, nous utilisons le coefficient de corrélation de Pearson, puisque la matrice de corrélation servira par la suite à l’Analyse en Composantes Principales^[voir annexe: Graphiques 6].
 
-Bien que toutes les variables soient exprimées en tonnes équivalent CO₂, leurs distributions sont asymétriques et présentent des valeurs extrêmes. Afin de vérifier les relations, nous avons également calculé le coefficient de corrélation de Spearman, fondé sur les rangs et moins sensible aux valeurs aberrantes^[voir annexe: Graphiques 8]. Les résultats obtenus sont similaires, ce qui confirme les relations observées entre les secteurs.
+Bien que toutes les variables soient exprimées en tonnes équivalent CO2, leurs distributions sont asymétriques et présentent des valeurs extrêmes. Afin de vérifier les relations, nous avons également calculé le coefficient de corrélation de Spearman, fondé sur les rangs et moins sensible aux valeurs aberrantes^[voir annexe: Graphiques 8]. Les résultats obtenus sont similaires, ce qui confirme les relations observées entre les secteurs.
 
 De manière générale, les variables quantitatives présentent de fortes corrélations positives. Les matrices de corrélation mettent en évidence des secteurs très corrélé (résidentiel, routier, biomasse et tertiaire) avec des coefficients supérieurs à 0,9 avec le coefficient de Pearson, indiquant une redondance informationnelle. Les départements fortement émetteurs de C02 dans l’un de ces secteurs le sont également dans les autres. On remarque aussi une corrélation linéaire croissante quasi parfaite entre le secteur résidentiel et terrtiaire une fois le coeficient de corrélation de pearson arrondis (0,996).
 
@@ -499,7 +498,7 @@ Ces corrélations se vérifient également visuellement sur les nuages de points
 
 Ces interprétations amènent à penser au recours à une analyse en composantes principales afin de synthétiser l’information et d’identifier des profils territoriaux d’émissions. Il semblerait également qu'une acp contenant toutes les variables ne soit pas très pertinente en vue des fortes corrélations.
 
-\underline{Graphique 9} : Relations entre les émissions de CO₂ de différents secteurs avec droites de régression
+\underline{Graphique 9} : Relations entre les émissions de CO2 de différents secteurs avec droites de régression
 
 ```{r}
 par(mfrow = c(1, 2)) 
@@ -543,7 +542,7 @@ Base_long <- melt(Base_dep, id.vars = "dep_nom",
                                    "Routier", "Tertiaire"))
 ```
 
-\underline{Graphique 10} : Répartition des émissions de CO₂ par secteur et département
+\underline{Graphique 10} : Répartition des émissions de CO2 par secteur et département
 
 ```{r,fig.width=12, fig.height=6}
 ggplot(Base_long, aes(x = dep_nom, y = value, fill = variable)) +
@@ -692,7 +691,7 @@ Cette ACP est réalisée sur les données brutes d'émissions de CO2 donc elle v
 rownames(Base_dep) <- Base_dep$dep_code
 ```
 
-Bien que toutes les variables soient exprimées dans la même unité (tonnes équivalent CO₂), leurs dispersions et ordres de grandeur diffèrent fortement selon les secteurs. Le centrage-réduction est donc nécessaire afin d’éviter que les secteurs les plus émetteurs ne dominent l’analyse et afin de mettre en évidence la structure relative des émissions entre départements.
+Bien que toutes les variables soient exprimées dans la même unité (tonnes équivalent CO2), leurs dispersions et ordres de grandeur diffèrent fortement selon les secteurs. Le centrage-réduction est donc nécessaire afin d’éviter que les secteurs les plus émetteurs ne dominent l’analyse et afin de mettre en évidence la structure relative des émissions entre départements.
 
 ```{r, include=FALSE}
 pca_full <- PCA(Base_dep[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
@@ -958,7 +957,7 @@ reg_acp <- PCA(Base_region_acp,
 # Tableau 4 
 reg_acp$eig
 
-# Graphique 24 : Eboulis des valeurs propres pour l'ACP par régio
+# Graphique 24 : Eboulis des valeurs propres pour l'ACP par région
 fviz_eig(reg_acp,
          addlabels = TRUE,
          main = "Eboulis des valeurs propres")
