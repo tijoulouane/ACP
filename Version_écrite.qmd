@@ -66,7 +66,7 @@ nrow(Base) # Nombre de ligne
 
 ```{r, include=FALSE}
 # -----------------------------
-# RENOMMAGE DES VARIABLES
+# RENOMMER LES VARIABLES
 # -----------------------------
 
 Base <- Base %>%
@@ -491,7 +491,7 @@ Une autre corrélation très élevée est également observée entre les secteur
 
 Ces corrélations se vérifient également visuellement sur les nuages de points. On observe une forte relation linéaire positive entre les émissions du secteur résidentiel et celles du secteur routier. En revanche, le graphique comparant l’agriculture et le résidentiel montre une relation négative faible. On peut aussi constater l’influence de quelques valeurs extrêmes, qui s’écartent de la tendance générale. Sans ces valeurs, la relation serait probablement encore plus linéaire.
 
-Ces interprétations amènent à penser au recours à une analyse en composantes principales afin de synthétiser l’information et d’identifier des profils territoriaux d’émissions.
+Ces interprétations amènent à penser au recours à une analyse en composantes principales afin de synthétiser l’information et d’identifier des profils territoriaux d’émissions. Il semblerait également qu'une acp contenant toutes les variables ne soit pas très pertinente en vue des fortes corrélations.
 
 \underline{Graphique 9} : Relations entre les émissions de CO₂ de différents secteurs avec droites de régression
 
@@ -675,6 +675,9 @@ Puis, afin d’évaluer l’impact des corrélations quasi parfaites et d’amé
 
 ## ACP sur l'enssemble des données
 
+Cette ACP est réalisée sur les données brutes d'émissions de CO2 donc elle va indiquer quel secteur porte principalement les émissions de CO2 de chaque département.
+
+
 ```{r, inlcude = FALSE, warning=FALSE}
 # --------------------------
 # Code département en index
@@ -841,58 +844,113 @@ fviz_pca_var(pca_blocs,
                    repel = TRUE,
                    title = "Cercle des corrélations - Variables")
 ```
-Ici, l'axe principal concentre les 3 blocs principaux, ce qui indique que plus un département sera sur la droite plus ce sera un département émetteur (tous secteurs confondus). L'axe 2 lui est caractérisé par l'agriculture, ce qui indique qu'un département placé "plus haut" possédera une composante agricole importante dans ses émissions totales.
+Ici, l'axe principal concentre les 3 blocs principaux, ce qui indique que plus un département sera sur la droite du graphique des individus plus ce sera un département émetteur (tous secteurs confondus). L'axe 2 lui est caractérisé par l'agriculture, ce qui indique qu'un département placé "plus haut" possédera une composante agricole importante dans ses émissions totales.
 ```{r}
 fviz_pca_ind(pca_blocs, col.ind = "cos2")
 ```
-De manière logique, on retrouve les mêmes départements que précédemment, avec le 13 qui se situe en haut, de par sona ctivité agricole non négligeable (élevage bovin, maraîchage, rizicultures...). 
+De manière logique, on retrouve les mêmes départements que précédemment, avec le 13 qui se situe en haut à droite, de par ses activités industrielles et énergétiques mais il est aussi tiré vers le haut par son activité agricole non négligeable (élevage bovin, maraîchage, rizicultures...), 
+
 Sur la partie gauche du graphe, on remarque quand même que certains départements sortent de la masse grâce à la caractérisation de l'axe 2. On a par exemple des départements qui sortent du lot avec le Loiret (45), la Meurthe-et-Moselle (54), la Vienne (86) et l'aveyron (12) qui sont des régions faiblement peuplées et principalement exploitées au service de l'agriculture et de l'élevage. L'axe 2 permet donc réellement ici d'indiquer quel département est concentré sur l'agriculture ou non.
 
-Cependant, il faut prendre en compte les limites de cette représentation: à part les départements très émetteurs ou agricoles, on ne parvient pas à visualiser les différences entre deux départements car la plus part se retrouvent très proche sur le graph. Et comme précédemment, retiré les extrêmes n'apporterait rien car d'autres tireraient alors l'axe 1 à eux (70, 60...) et il faudrait ainsi répéter la procédure de nombreuses fois pour étudier deux départements précis.
+Cependant, il faut prendre en compte les limites de cette représentation: à part les départements très émetteurs ou complètement agricoles, on ne parvient pas à visualiser les différences entre deux départements car la plus part se retrouvent très proche sur le graphe. Et comme précédemment, retiré les extrêmes n'apporterait rien car d'autres tireraient alors l'axe 1 à eux (70, 60...) et il faudrait ainsi répéter la procédure de nombreuses fois pour étudier deux départements précis.
 
 ```{r}
-# --- Analyse des groupes ---
-res.hcpc <- HCPC(pca_full, graph = FALSE)
-fviz_cluster(res.hcpc, 
-             repel = TRUE, 
-             main = "Groupes d'individus (Clustering)")
+regions <- read.csv("departements-region.csv",
+                    sep = ",",
+                    stringsAsFactors = FALSE)
+
+head(regions)
+
 ```
 
 ```{r}
-rownames(Base_dep_blocs_corrélé) <- Base_dep_blocs_corrélé$dep_code
-dep_atypiques <- c("95", "94", "93", "76", "13")
-Base_dep_blocs_corrélé <- Base_dep_blocs_corrélé[!Base_dep_blocs_corrélé$dep_code %in% dep_atypiques, ]
+Base_dep$dep_code <- as.character(Base_dep$dep_code)
+regions$num_dep <- as.character(regions$num_dep)
+Base_dep <- merge(Base_dep,
+                  regions[, c("num_dep", "region_name")],
+                  by.x = "dep_code",
+                  by.y = "num_dep",
+                  all.x = TRUE)
+
+```
+
+
+```{r}
+Base_region <- Base_dep |>
+  group_by(region_name) |>
+  summarise(across(where(is.numeric),
+                   \(x) mean(x, na.rm = TRUE)))
+
+
 ```
 
 ```{r}
-pca22 <- PCA(Base_dep_blocs_corrélé[, variables_quantitatives_blocs], scale.unit = TRUE, graph = FALSE)
+Base_region$Bloc_residentiel <- rowMeans(Base_region[, c("Biomasse","Résidentiel","Tertiaire","Routier")])
+
+# Supprimer les variables d'origine intégrées dans les blocs
+Base_region <- Base_region[, !colnames(Base_region) %in% c("Biomasse","Résidentiel","Tertiaire","Routier","Total_CO2")]
+
+
 ```
 
 ```{r}
-fviz_pca_var(pca22, 
-                   col.var = "contrib", 
-                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   repel = TRUE,
-                   title = "Cercle des corrélations - Variables")
+Base_region_acp <- as.data.frame(Base_region)
+
+rownames(Base_region_acp) <- Base_region_acp$region_name
+
+Base_region_acp$region_name <- NULL
 
 ```
-On observe une légère modification dans la spécification des axes. 
 
 ```{r}
-fviz_pca_ind(pca22, 
-                   col.ind = "cos2", 
-                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   #repel =-  TRUE,
-                   title = "Carte des individus (cos2)")
+variables_quantitatives_blocs_reg <- c("Agriculture","Déchets","Energie","Industrie","Bloc_residentiel")
 ```
 
-On remarque qu'en enlevant les plus atypiques, d'autres apparaissent. Ce processus se répète de par la présence de départements plus spécifiés que d'autres dans certains domaines.
+```{r}
+kmo_result_ACP_région <- KMO(Base_region_acp[, variables_quantitatives_blocs_reg])
+kmo_result_ACP_région
+# KMO > 0,6
 
-Globalement on n'arrive pas à en tirer un quelconque résultat de cette acp vu que seuls quelques département tirent vers eux tout l'axe 1. Même en retirant les plus atypiques, on en obtient de nouveau et ce, en continue. Une solution est donc de créer une nouvelle colonne mesurant les émissions totales du département pour ensuite déterminer un ratio de chaque département pour chaque secteur. On peut ainsi reprendre la base initiale, sans les départements "extrêmes".
+mat_cor <- cor(Base_region_acp, method = "pearson")
 
-# ACP sur les ratios d'émissions
+# Vérifier la matrice
+mat_cor
 
-Les différentes méthodes précédentes
+# Calculer le déterminant
+det(mat_cor)
+```
+
+```{r}
+res_acp <- PCA(Base_region_acp,
+               scale.unit = TRUE,
+               graph = FALSE)
+
+res_acp$eig
+
+fviz_eig(res_acp,
+         addlabels = TRUE,
+         main = "Eboulis des valeurs propres")
+
+fviz_pca_var(res_acp)
+fviz_pca_ind(res_acp,
+             geom = "text",
+             repel = TRUE)
+```
+
+Afin de vérifier nos résultats et éventuellement affiner nos conclusions, nous avons réalisé une nouvelle ACP, cette fois en regroupant les départements par région.
+Sur le graphique des individus, cela confirme que les départements du Grand Ouest sont fortement caractérisés par des émissions liées à l’agriculture, puisque l’on observe que les régions Pays de la Loire, Normandie et Bretagne sont tirées vers ce type d’émissions.
+La région Provence-Alpes-Côte d’Azur se distingue par des émissions principalement liées à l’énergie et à l’industrie principalmeent tiré par le département de Bouches-du-Rhône. Quant à l’Île-de-France, elle se caractérise par le secteur résidentiel, avec des contributions importantes provenant de la biomasse, du résidentiel, du routier et du tertiaire, indiqunat bien une région urbanisé.
+Pour le reste des régions, comme pour la majorité des départements, les profils sont plutôt homogènes et similaires, sans domination marquée d’un secteur particulier.
+
+On n'a également testé une ACP sur les émissions par habitants [^2] qui n'a rien donné de nouveau. On retrouverais à peu près la même spécification des axes et donc les mêmes départements étaient présents au extrêmes tandis que tout les autres étaient concentrés en un amas.
+
+[^2]:(voir annexe: ACP_ind)
+
+Globalement on n'arrive pas à en tirer un quelconque résultat de cette acp vu que seuls quelques département tirent vers eux tout l'axe 1. Une solution est donc de créer une nouvelle colonne mesurant les émissions totales du département pour ensuite déterminer un ratio de chaque département pour chaque secteur. On peut ainsi reprendre la base initiale, sans les départements "extrêmes".
+
+## ACP sur les ratios d'émissions
+
+Avec cette ACP, on ne cherche plus quel secteur est le plus émetteur. On va plutôt chercher à comprendre le profil de chaque département. C'est à dire, déterminer si le secteut a une tendance industrielle tout en étant peuplé ou bien si toutes ses émissions se concentrent uniquement sur le secteur résidentiel... On peut donc avoir des profils très diverses de mis en avant, permettant de mieux comprendre le dynamique de chacun.
 
 ## justification de l'acp
 
@@ -926,7 +984,7 @@ kmo_result
 pca_14 <- PCA(Base_dep_ratios[, variables_quantitatives_ratios], scale.unit = TRUE, graph = FALSE)
 ```
 
-Ici le seul moyen d'avoir un KMO supérieur à 0.5 est en retirant la variable agriculture, qui n'est pas corrélée avec les autres.
+Ici le seul moyen d'avoir un KMO supérieur à 0.5 est en retirant la variable agriculture, qui n'est pas corrélée positivement avec les autres.
 Ainsi, on obtient un déterminant de 0.35.
 ```{r}
 mydata <- Base_dep_ratios[,c("Routier","Biomasse","Déchets","Energie","Industrie","Résidentiel")]
@@ -948,12 +1006,12 @@ fviz_eig(pca_14,
   theme(plot.title = element_text(size = 12))
 ```
 
-Le graphique vient confirmer les résultats précédents, seul 60% de l'information est comprise dans les deux premières dimensions. Cependant le reste des valeurs propres chute donc la règle de kaiser est respectée. On concervera donc deux dimensions pour cette acp.
+Le graphique vient confirmer les résultats précédents, seule 60% de l'information est comprise dans les deux premières dimensions. Cependant le reste des valeurs propres chute donc la règle de kaiser est respectée. On concervera donc deux dimensions pour cette acp.
 
 ```{r}
-pca_14 <- PCA(Base_dep_ratios[, variables_quantitatives_ratios], scale.unit = TRUE, graph = FALSE)
+pca_r <- PCA(Base_dep_ratios[, variables_quantitatives_ratios], scale.unit = TRUE, graph = FALSE)
 
-fviz_pca_var(pca_14, 
+fviz_pca_var(pca_r, 
                    col.var = "contrib", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    repel = TRUE,
@@ -963,9 +1021,18 @@ fviz_pca_var(pca_14,
 La dimension 1 oppose d'un côté les départements où les émissions sont liées aux activités de production (industrielle et énègétique) et de l'autre, l'axe met en lumière les départements marqués par la mobilité, où le secteur Routier (incluant le transport de marchandises et de voyageurs) est le premier contributeur au profil d'émissions. Cet axe permet donc de distinguer les bassins de production des zones de transit ou de flux.
 
 
-A l'inverse, l'axe 2 semble montrer la nature du mode de vie avec une opposition entre les variables déchets/résidentiel et Biomasse. Cet axe permet donc d'indiquer si le département est urbanisé ou possède encore des ressources naturelles. 
+A l'inverse, l'axe 2 semble montrer la nature du mode de vie avec une caractérisation principalement sur les variables Résidentiel et Déchets. Cet axe permet donc d'indiquer si le département est grandement peuplé ou non.
+
+Malgré une faible contribution, on décide de conserver la variable Biomasse car c'est la seule à tendre vers le bas et donc apporter une information sur l'axe 2. Sa faible contribution dans les 2 premières dimensions est dûe au fait qu'elle possède un comportement totalement différents des dynamiques observées ici.
+
 ```{r}
-fviz_pca_ind(pca_14,  
+# Graphique des contributions des variables à l'axe 1 et 2
+fviz_contrib(pca_r, choice = "var", axes = 1, top = 10)
+fviz_contrib(pca_r, choice = "var", axes = 2, top = 10)
+pca_r$var$cos2
+```
+```{r}
+fviz_pca_ind(pca_r,  
                    col.ind = "cos2", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    #repel =-  TRUE,
@@ -977,75 +1044,10 @@ En haut à droite, on retrouve les départements où les émissions sont princip
 En bas à gauche, on retrouve des départements ayant un profil industriel mais cette fois ci, largement moins peuplé avec donc une empreinte carbonne liée en partie à la biomasse. On y retrouve par exemple le Morbihan avec une forte activité dans le domaine de l'agro alimentaire/construction navale ou encore la manche, où on retrouve à la fois la centrale de Flamanville mais aussi une production agro-alimentaire importante.
 En bas à droite, les départements ont une part prépondérante de la Biomasse dans le mix d'émissions, souvent liée à la valorisation des ressources locales (comme pour le finistère avec l'activité maritime). Ces territoires restent cependant très dépendants du transit routier, car souvent moins peuplés (finistère, var...) ou bien car ce sont des zones qui ont besoin d'acheminer des ressources.
 
-```{r}
-fviz_pca_biplot(pca_14, 
-                repel = TRUE,        
-                col.var = "contrib", 
-                col.ind = "cos2")    
+On remarque que quelques départements ne sont pas correctement expliqués par ce plan (points bleus/verts) ce qui montre bien l'importance de la Biomasse et l'utilité de réaliser une ACP en trois dimensions. Cette troisième dimension permettrait notamment de clarsifier l'amas de département au centre du graphe, on pourrait alors avoir au minimum 4 profils biens distincts.
 
-```
+# Conclusion
 
-#Solution 2 On va ici faire une acp sur l'intensité d'émissions par habitant.
-
-```{r}
-habs <- read_xlsx("estim-pop-dep-sexe-gca-1975-2026.xlsx", sheet = 2, skip=3 )
-habs <- habs[,c(1,2,8)]
-
-
-Base_dep_habs <- left_join(
-  Base_dep,
-  habs,
-  by = c("dep_code" = "Départements"),
-  keep = TRUE)
-
-Base_dep_habs <- Base_dep_habs |>
-  select(-Départements, -`...2`) |>
-  rename(nbr_habs = `...8`)
-
-rownames(Base_dep_habs) <- Base_dep_habs$dep_code
-
-
-```
-
-```{r}
-kmo_result <- KMO(Base_dep_habs[, variables_quantitatives])
-kmo_result
-```
-
-```{r}
-pca_16 <- PCA(Base_dep_habs[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
-
-fviz_pca_var(pca_16, 
-                   col.var = "contrib", 
-                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   repel = TRUE,
-                   title = "Cercle des corrélations - Variables")
-fviz_pca_ind(pca_16,  
-                   col.ind = "cos2", 
-                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   #repel =-  TRUE,
-                   title = "Carte des individus (cos2)")
-```
-
-```{r}
-dep_atypiques_habs <- c(13, 70,77,60,45,70,76,93,94,95)
-base_dep_habs <- Base_dep_habs[!Base_dep_habs$dep_code %in% dep_atypiques_habs, ]
-
-pca_15 <- PCA(base_dep_habs[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
-
-fviz_pca_var(pca_15, 
-                   col.var = "contrib", 
-                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   repel = TRUE,
-                   title = "Cercle des corrélations - Variables")
-fviz_pca_ind(pca_15,  
-                   col.ind = "cos2", 
-                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                   #repel =-  TRUE,
-                   title = "Carte des individus (cos2)")
-```
-
-On observe le même cas que tout à l'heure avec quelques département aux extrêmes qui attirent à eux la dimensions 1. Cette méthode ne va donc pas pouvoir nous apporter grand chose mais on remarque malgré tout que ce sont les mêmes départements qui ressortent en tant que "valeur atypique".
 
 # Annexe
 
@@ -1222,7 +1224,77 @@ det(corr_mat_blocs)
 ```{r}
 Eboulis_blocs
 ```
+\underline {ACP_sans_extrêmes}: ACP groupée sans les extrêmes
+```{r}
+rownames(Base_dep_blocs_corrélé) <- Base_dep_blocs_corrélé$dep_code
+dep_atypiques <- c("95", "94", "93", "76", "13")
+Base_dep_blocs_corrélé <- Base_dep_blocs_corrélé[!Base_dep_blocs_corrélé$dep_code %in% dep_atypiques, ]
+```
 
-## autres ACP réalisées
+```{r}
+pca_blocs_2 <- PCA(Base_dep_blocs_corrélé[, variables_quantitatives_blocs], scale.unit = TRUE, graph = FALSE)
+```
 
-### 
+```{r}
+fviz_pca_var(pca_blocs_2, 
+                   col.var = "contrib", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   repel = TRUE,
+                   title = "Cercle des corrélations - Variables")
+
+```
+
+```{r}
+fviz_pca_ind(pca_blocs2, 
+                   col.ind = "cos2", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   #repel =-  TRUE,
+                   title = "Carte des individus (cos2)")
+```
+
+\underline {ACP_ind} : ACP émissions par individus
+```{r}
+#| message: false
+habs <- read_xlsx("estim-pop-dep-sexe-gca-1975-2026.xlsx", sheet = 2, skip=3 )
+habs <- habs[,c(1,2,8)]
+
+
+Base_dep_habs <- left_join(
+  Base_dep_blocs_corrélé,
+  habs,
+  by = c("dep_code" = "Départements"),
+  keep = TRUE)
+
+Base_dep_habs <- Base_dep_habs |>
+  select(-Départements, -`...2`) |>
+  rename(nbr_habs = `...8`)
+
+rownames(Base_dep_habs) <- Base_dep_habs$dep_code
+
+
+```
+
+```{r}
+kmo_result <- KMO(Base_dep_habs[, variables_quantitatives_blocs])
+kmo_result
+```
+```{r}
+mat_cor <- cor(Base_dep_habs[sapply(Base_dep_habs, is.numeric)], method = "pearson")
+det(mat_cor)
+```
+
+
+```{r}
+pca_ind <- PCA(Base_dep_habs[, variables_quantitatives_blocs], scale.unit = TRUE, graph = FALSE)
+
+fviz_pca_var(pca_ind, 
+                   col.var = "contrib", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   repel = TRUE,
+                   title = "Cercle des corrélations - Variables")
+fviz_pca_ind(pca_ind,  
+                   col.ind = "cos2", 
+                   gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+                   #repel =-  TRUE,
+                   title = "Carte des individus (cos2)")
+```
