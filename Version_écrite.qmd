@@ -15,17 +15,17 @@ execute:
 
 # Introduction
 
-Au fil des années, les activités humaines ont entraîné une augmentation continue des émissions de CO2, renforçant continuellement l’effet de serre et aggravant le réchauffement climatique. Il est donc essentiel de comprendre quels secteurs sont les plus émetteurs afin de mettre en place des politiques efficaces pour réduire ces émissions. Il est également important d’identifier les départements ou régions où la vigilance doit être renforcée, afin que les efforts de réduction soient équitablement répartis sur l’ensemble du territoire.
+Au fil des années, les activités humaines ont entraîné une augmentation continue des émissions de CO2, renforçant l’effet de serre et aggravant le réchauffement climatique. Il est donc essentiel de comprendre quels secteurs sont les plus émetteurs afin de mettre en place des politiques efficaces pour réduire ces émissions. Il est également important d’identifier les départements ou régions où la vigilance doit être renforcée, afin que les efforts de réduction soient équitablement répartis sur l’ensemble du territoire.
 
 Cette étude porte sur les émissions de dioxyde de carbone (CO2) des départements français par secteur d'activité. Les données proviennent du CITEPA[^1], et ont été récupérées sur la plateforme officielle *data.gouv.fr* ([source](https://www.data.gouv.fr/datasets/inventaire-de-gaz-a-effet-de-serre-territorialise/))
 
 [^1]: Centre Interprofessionnel Technique d’Études de la Pollution Atmosphérique
 
-La base recense exactement 12 variables donc 2 qualitatives indiquant le nom de la commune mais aussi son code Insee. Elle contient aussi 10 variables quantitatives sur lesquelles l'analyse en composante principale se réalisée, ces variables correspondent aux émissions totales des émissions de C02 par secteurs pour chaque communes française pour l'année 2016, comme l'agriculture, l'industrie, le secteur routier, terrtiaire, résidentiel etc
+La base recense exactement 12 variables donc 2 qualitatives indiquant le nom de la commune mais aussi son code Insee. Elle contient aussi 10 variables quantitatives sur lesquelles l'analyse en composante principale se réalisée, ces variables correspondent aux émissions totales des émissions de C02 par secteurs pour chaque communes française(35 798) pour l'année 2016, comme l'agriculture, l'industrie, le secteur routier, terrtiaire, résidentiel etc.
 
 Notre objectif est de comprendre comment les émissions de CO2 se répartissent entre les départements français selon les secteurs d’activité et s’il est possible d’identifier des profils départementaux d’émissions.
 
-Pour ce faire, nous procéderons d’abord à une analyse univariée de chacune des variables, puis à une analyse bivariée afin d’étudier les relations entre elles. Ensuite, nous réaliserons une analyse factorielle, et plus particulièrement une analyse en composantes principales (ACP), avant de conclure sur les principaux résultats mis en évidence.
+Pour ce faire, nous procéderons d’abord à une analyse univariée de chacune des variables, puis à une analyse bivariée afin d’étudier les relations entre elles. Ensuite, nous réaliserons une analyse factorielle, et plus particulièrement des analyses en composantes principales (ACP), avant de conclure sur les principaux résultats mis en évidence.
 
 \newpage
 
@@ -144,7 +144,7 @@ gg_miss_var(Base)
 
 ## Traitement des valeurs manquantes
 
-Dans un premier temps, nous examinons la présence de valeurs manquantes au sein du jeu de données. Cette étape est essentielle car un taux élevé de données manquantes peut biaiser les analyses statistiques ultérieures.
+Dans un premier temps, nous examinons la présence de valeurs manquantes au sein du jeu de données. Cette étape est essentielle car un taux élevé de données manquantes peut biaiser les analyses statistiques.
 
 ```{r,.width=5, fig.height=2.5}
 # Graphique 1:  Visualisation des données manquantes par variable 
@@ -155,7 +155,7 @@ Nous observons que les variables *Autres_transports* et *Autres_transports_inter
 
 Après avoir supprimé les variables avec trop de valeurs manquantes, comme le montre le graphique d'autres observations sont manquantes dans certains secteurs.
 
-Cependant, ces valeurs manquantes, sont peu nombreuses par rapport à l’échantillon total et peuvent simplement être due à la réalité, c'est à dire que certaines communes peuvent très bien n'avoir aucune émissions de CO2 sur un secteur donné.
+Cependant, ces valeurs manquantes, sont peu nombreuses par rapport à l’échantillon total et peuvent simplement être due à la réalité, c'est à dire que certaines communes peuvent très bien n'avoir aucune émissions de CO2 sur un secteur donné (par exemple si un département n'a pas de centre de déchet).
 
 Comme nous agrégeons ensuite les communes par département (en faisant la moyenne des émissions par secteur), ces quelques valeurs manquantes n’ont pas d’impact significatif, la moyenne par département sera calculée sur les communes disponibles.
 
@@ -167,7 +167,7 @@ Cette nouvelle variable nous permet de regrouper les communes par département, 
 
 Concernant la vue des données manquantes, il ne reste plus qu’une valeur manquante pour le secteur de l’agriculture, correspondant au département de Paris. Après examen des données communales, toutes les valeurs pour les arrondissements (du 1er au 20e) sont manquantes pour ce secteur.
 
-Cette absence de données reflète la réalité territoriale, Paris intra-muros est un département quasi entièrement urbanisé, où l’activité agricole est inexistante dans les arrondissements et même très peu présente dans la proche couronne[^2]. La valeur manquante a alors été imputée par 0.
+Cette absence de données reflète la réalité du territoire, Paris intra-muros est un département casiment entièrement urbanisé, où l’activité agricole est inexistante dans les arrondissements et même très peu présente dans la proche couronne[^2]. La valeur manquante a alors été imputée par 0.
 
 [^2]: Source :  https://driaaf.ile-de-france.agriculture.gouv.fr/les-espaces-agricoles-representent-2-5-du-territoire-de-paris-et-de-la-proche-a3478.html
 
@@ -334,9 +334,9 @@ hist(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Emission C02 - Terrtiaire",
 ```
 
 
-La plupart des secteurs montrent une distribution étalée vers la droite, autrement dit la plupart des départements sont concentrés sur les mêmes niveaux d'émission de CO2, sauf quelques départements qui se distinguent par des émissions très élevées. À cause des émissions très élevées de certains départements pour quelques secteurs, cela écrase visuellement la distribution de la majorité des données.
+La plupart des secteurs montrent une distribution étalée vers la droite, autrement dit la plupart des départements sont concentrés sur les mêmes niveaux d'émission de CO2, sauf quelques départements qui se distinguent par des émissions très élevées. À cause des émissions très élevées de certains départements pour quelques secteurs, cela rend l'interprétation de la distribution de la majorité des données compliquée.
 
-Pour mieux voir la répartition des émissions de la majorité des départements, nous avons ajusté l'échelle des histogrammes en nous focalisant sur les valeurs les plus fréquentes ^[voir annexe: Graphiques 3]. On observe ainsi que pour les secteurs industrie, résidentiel, routier, biomasse et tertiaire, les émissions de la grande majorité des départements se concentrent entre leur minimum et environ 10 000 tonnes équivalent CO2. Le secteur de l'énergie présente une concentration plus basse, entre 34 et 1 000 tonnes, tandis que celui des déchets se situe essentiellement entre 60 et 2 000 tonnes. Les concentrations d'émission restent présentes, soulignant des spécialisations territoriales marquées.
+Pour mieux voir la répartition des émissions de la majorité des départements, nous avons ajusté l'échelle des histogrammes en nous focalisant sur les valeurs les plus fréquentes ^[voir annexe: Graphiques 3]. On observe ainsi que pour les secteurs industrie, résidentiel, routier, biomasse et tertiaire, les émissions de la grande majorité des départements se concentrent entre leur minimum et environ 10 000 tonnes équivalent CO2. Le secteur de l'énergie présente une concentration plus basse, entre 34 et 1 000 tonnes, tandis que celui des déchets se situe principalement entre 60 et 2 000 tonnes. Les concentrations d'émission restent présentes, indiquant que les départements ont tendance à émettre du C02 de manière casiment équivalente sauf pour certains.
 
 ```{r, include=FALSE}
 #Graphiques 3 : Histogrammes zoomés des variables quantitatives
@@ -354,7 +354,7 @@ hist(Base_dep$Routier, xlab = "Routier", main = "Emission C02 - Routier", col = 
 hist(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Emission C02 - Terrtiaire", col = "firebrick",cex.main = 0.8, xlim = c(0, 20000), breaks = 50)
 ```
 
-Contrairement aux autres secteurs, les émissions du secteur agricole sont plus homogènes sur le territoire français, aucun département ne semble émettre ce type d’émission de manière extrême.
+Contrairement aux autres secteurs, les émissions du secteur agricole sont plus homogènes sur le territoire français et aucun département ne semble émettre ce type d’émission de manière extrême.
 
 Ces conclusions peuvent se traduire par l'activité agricole globalement bien répartie sur l'ensemble du territoire, contrairement aux zones industrielles plus localisées.
 
@@ -382,7 +382,7 @@ plot(density(Base_dep$Tertiaire, na.rm = TRUE), main = "Emission CO2 - Tertiaire
 
 ```
 
-L’analyse des densités complète les histogrammes^[voir annexe: Graphiques 4] en faisant apparaître des formes moins visibles. Elle met notamment en évidence, dans le secteur agricole, l’existence de deux groupes distincts de départements (une majorité à environ 2000 tonnes et un autre groupe à environ 6000 tonnes) . Pour les autres secteurs, les pics marqués confirment une spécialisation territoriale, la majorité des départements présentent des émissions proches, tandis que les niveaux d'émission plus élevés concernent seulement quelques groupes de départements
+L’analyse des densités complète les histogrammes^[voir annexe: Graphiques 4] en faisant apparaître des formes moins visibles. Elle met notamment en évidence, dans le secteur agricole, l’existence de deux groupes distincts de départements (une majorité à environ 2000 tonnes et un autre groupe à environ 6000 tonnes d'émmissions de CO2) . Pour les autres secteurs, les pics marqués confirment que la majorité des départements présentent des émissions proches, tandis que les niveaux d'émission plus élevés concernent seulement quelques groupes de départements
 
 Ces distributions asymétriques nous amènent alors à regarder les boxplots afin d’identifier les valeurs potentiellement aberrantes ou atypiques.
 
@@ -480,19 +480,19 @@ graph_corr_color_spearman <- recordPlot()
 
 
 \underline{Graphique 7} : Corrélation des émissions de CO2 par secteur (Pearson)
-```{r,.width=3, fig.height=3}
+```{r,.width=4, fig.height=4}
 replayPlot(graph_corr_color_pearson)
 ```
 
-Pour analyser les relations entre les variables quantitatives du jeu de données, soit les différents secteurs d’émissions de CO2, nous utilisons le coefficient de corrélation de Pearson, puisque la matrice de corrélation servira par la suite à l’Analyse en Composantes Principales^[voir annexe: Graphiques 6].
+Pour analyser les relations entre les variables quantitatives du jeu de données, soit les différents secteurs d’émissions de CO2, nous utilisons le coefficient de corrélation de Pearson, puisque cette matrice de corrélation servira par la suite à l’Analyse en Composantes Principales^[voir annexe: Graphiques 6].
 
-Bien que toutes les variables soient exprimées en tonnes équivalent CO2, leurs distributions sont asymétriques et présentent des valeurs extrêmes. Afin de vérifier les relations, nous avons également calculé le coefficient de corrélation de Spearman, fondé sur les rangs et moins sensible aux valeurs aberrantes^[voir annexe: Graphiques 8]. Les résultats obtenus sont similaires, ce qui confirme les relations observées entre les secteurs.
+Bien que toutes les variables soient exprimées en tonnes de CO2, les distributions sont asymétriques et présentent des valeurs extrêmes. Afin de vérifier les relations, nous avons également calculé le coefficient de corrélation de Spearman, fondé sur les rangs et moins sensible aux valeurs aberrantes^[voir annexe: Graphiques 8]. Les résultats obtenus sont très similaires, ce qui confirme les relations observées entre les secteurs.
 
-De manière générale, les variables quantitatives présentent de fortes corrélations positives. Les matrices de corrélation mettent en évidence des secteurs très corrélé (résidentiel, routier, biomasse et tertiaire) avec des coefficients supérieurs à 0,9 avec le coefficient de Pearson, indiquant une redondance informationnelle. Les départements fortement émetteurs de C02 dans l’un de ces secteurs le sont également dans les autres. On remarque aussi une corrélation linéaire croissante quasi parfaite entre le secteur résidentiel et terrtiaire une fois le coeficient de corrélation de pearson arrondis (0,996).
+De manière générale, les variables quantitatives présentent de fortes corrélations positives. Les matrices de corrélation mettent en évidence des secteurs très corrélé (résidentiel, routier, biomasse et tertiaire) avec des coefficients supérieurs à 0,85 avec le coefficient de Pearson et de Spearman, indiquant une redondance informationnelle. Les départements fortement émetteurs de C02 dans l’un de ces secteurs le sont également dans les autres. On remarque aussi une corrélation linéaire croissante quasi parfaite entre le secteur résidentiel et terrtiaire une fois le coeficient de corrélation de pearson arrondis (0,996).
 
-Une autre corrélation très élevée est également observée entre les secteurs de l’énergie et de l’industrie (r ≈ 0,97), cela indique que plus le département émet des émissions de C02 en activité industrielle plus il à aussi tendance à en émettre avec la production énergétique.
+Une autre corrélation très élevée est également observée entre les secteurs de l’énergie et de l’industrie (0,97), cela indique que plus le département émet des émissions de C02 en activité industrielle plus il à aussi tendance à en émettre avec la production énergétique.
 
-À l’inverse, le secteur agricole présente des corrélations faibles et négatives avec les autres variables. Cela indique qu’un département plus spécialisé vers l’agriculture aura un profil d’émissions différent, avec de plus faible émissions dans les autres secteurs que l’agriculture, tout en rappelant que ces relations restent faibles et sans impact important. Enfin on observe cune corrélation quasi nulle entre les émssions lié à l'agriculture et à l'énergie indiquant une absence de relation linéaire. Autrement dit, les variations des émissions agricoles n’expliquent pas celles du secteur énergétique.
+À l’inverse, le secteur agricole présente des corrélations faibles et négatives avec les autres variables. Cela indique qu’un département plus spécialisé vers l’agriculture aura un profil d’émissions différent, avec de plus faible émissions dans les autres secteurs par rapport à un département émettant peu de CO2 lié à l'agriculture, tout en rappelant que ces relations restent faibles et sans impact important. Enfin on observe une corrélation casiment nulle entre les émssions lié à l'agriculture et à l'énergie indiquant une absence de relation linéaire. Autrement dit, les variations des émissions agricoles n’expliquent pas celles du secteur énergétique.
 
 Ces corrélations se vérifient également visuellement sur les nuages de points. On observe une forte relation linéaire positive entre les émissions du secteur résidentiel et celles du secteur routier. En revanche, le graphique comparant l’agriculture et le résidentiel montre une relation négative faible. On peut aussi constater l’influence de quelques valeurs extrêmes, qui s’écartent de la tendance générale. Sans ces valeurs, la relation serait probablement encore plus linéaire.
 
@@ -521,17 +521,17 @@ abline(lm(Résidentiel ~ Agriculture, data = Base_dep),  col = "red", lwd = 2)
 
 ## Variables qualitative - qualitative
 
-Les variables *dep_code* et *dep_nom* contiennent la même information sous des formats différents. Par conséquent, la réalisation d’un tableau de contingence, d’un test du χ² ou de graphiques croisés n’apporterait aucune information supplémentaire et serait alors illisible.
+Les variables *dep_code* et *dep_nom* contiennent la même information sous des formats différents. Par conséquent, la réalisation d’un tableau de contingence, d’un test du Khi² ou de graphiques croisés n’apporterait aucune information supplémentaire et serait alors illisible.
 
 ```{r, include=FALSE}
 length(unique(paste(Base_dep$dep_code, Base_dep$dep_nom)))
 ```
 
-Nous avons vérifié,que les 96 lignes correspondent bien à des combinaisons différentes, à l’aide de la fonction *unique()*, ce qui confirme que chaque code est associé à son nom. L'analyse bivariée pour ces variables n’est donc pas utile
+Nous avons vérifié, que les 96 lignes correspondent bien à des combinaisons différentes, à l’aide de la fonction *unique()*, ce qui confirme que chaque code départemental est associé à son nom. L'analyse bivariée pour ces variables n’est donc pas utile
 
 ## Variables qualitative - quantitative
 
-Dans cette partie, nous nous intéressons à la relation entre les émissions de CO₂ par secteur (variable quantitative) et les départements (variable qualitative). L’objectif est d’examiner si certains départements ont des niveaux d’émissions différents selon les secteurs.
+Dans cette partie, nous nous intéressons à la relation entre les émissions de CO2 par secteur (variable quantitative) et les départements (variable qualitative). L’objectif est d’examiner si certains départements ont des niveaux d’émissions différents selon les secteurs.
 
 Une comparaison de moyenne par le test de student n'est pas approprié pour notre jeu de donnée. Nous avons donc utilisé un graphique en barres empilées, pour observer les différences de profils d’émissions entre départements et secteurs.
 
@@ -553,13 +553,12 @@ ggplot(Base_long, aes(x = dep_nom, y = value, fill = variable)) +
 
 ```
 
-Le graphique présente la répartition moyenne des émissions de CO2 par secteur pour chaque département en 2016. Les différences de hauteur des barres montrent que certains départements émettent beaucoup plus de CO2 que les autres. C'est notamment le cas pour Paris avec les secteurs routier et résidentiel. Les proportions des secteurs varient selon les départements, mettant en évidence des profils d’émissions distincts, comme l'industrie pour le département des Bouches-du-Rhône.
+Le graphique présente la répartition moyenne des émissions de CO2 par secteur pour chaque département en 2016. Les différences de hauteur des barres montrent que certains départements émettent beaucoup plus de CO2 que les autres. C'est notamment le cas pour Paris avec les secteurs routier et résidentiel. Les proportions des émissions par secteurs varient selon les départements, mettant en évidence des profils d’émissions différent, comme la spécialisation dans l'industrie pour le département de Bouches-du-Rhône.
 
 Ce graphique permet d’identifier visuellement les départements et secteurs les plus émetteurs, mais afin de voir cela de manière plus détaillée, en annexe^[voir annexe: Graphiques 11] se trouve le détail de chaque secteur, permettant d'observer réellement quels sont les départements les plus émetteurs de CO2 dans chaque secteur. En parallèle, le Top 10 des départements les plus émetteurs de CO2 est observable en annexe^[voir annexe: Graphique 13].
 
-De manière générale, on observe que Paris, les Hauts-de-Seine, la Seine-Saint-Denis, les Bouches-du-Rhône et le Val-de-Marne se situent dans la plupart des top 10 d'émission de chaque secteur, à l’exception du secteur de l'agriculture, qui regroupe plutôt les départements de Loire-Atlantique, Vendée ou même la Mayenne.
+De manière générale, on observe que Paris, les Hauts-de-Seine, Seine-Saint-Denis, Bouches-du-Rhône et Val-de-Marne se situent dans la plupart des top 10 d'émission de chaque secteur, à l’exception du secteur de l'agriculture, qui regroupe plutôt les départements de Loire-Atlantique, Vendée ou même la Mayenne. Ainsi observer qu’un département figurant dans un des Top 10 a tendance à l'être dans les autres secteurs, à l’exception de l’agriculture,  reflète les corrélations vues précédemment.
 
-On observe qu’un département figurant dans un des Top 10 a tendance à l'être dans les autres secteurs, à l’exception de l’agriculture, ce qui reflète les corrélations vues précédemment
 
 ```{r, fig.width=12, fig.height=6, include=FALSE}
 # Graphiques 11 : Détails émissions de C02 par secteurs et département 
@@ -671,7 +670,7 @@ déterminant_ACP_1 <- det(corr_mat_pearson)
 déterminant_ACP_1
 ```
 
-Ensuite, nous vérifions le déterminant de la matrice de corrélation de Pearson^[voir annexe: Test 4], qui est très faible (\~6,67e-9). Cela indique que certaines variables sont très fortement corrélées, mais pas parfaitement (comme observé dans l’analyse bivariée). Cette situation confirme que l’ACP est appropriée pour synthétiser l’information contenue dans les différents secteurs.
+Ensuite, nous vérifions le déterminant de la matrice de corrélation de Pearson^[voir annexe: Test 4], qui est très faible (\~6,67e-9).Nous aurions pu utiliser les corrélations de Spearman au vu de l’asymétrie de la distribution de nos données. Mais les conclusions sur les corrélations obtenues étant similaires, nous retenons la corrélation de Pearson, qui facilite l’interprétation et permet de conserver l’intensité des relations entre variables. Le déterminant très faible indique que certaines variables sont très fortement corrélées, mais pas parfaitement (comme observé dans l’analyse bivariée). Cette situation confirme que l’ACP est appropriée pour synthétiser l’information contenue dans les différents secteurs.
 
 Nous réalisons dans un premier temps une ACP sur l’ensemble des variables initiales, car le déterminant n’est pas nul et ne nécessite donc pas la suppression immédiate de variables.
 
