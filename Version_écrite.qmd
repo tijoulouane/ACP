@@ -854,7 +854,7 @@ Sur la partie gauche du graphe, on remarque quand même que certains départemen
 
 Cependant, il faut prendre en compte les limites de cette représentation: à part les départements très émetteurs ou complètement agricoles, on ne parvient pas à visualiser les différences entre deux départements car la plus part se retrouvent très proche sur le graphe. Et comme précédemment, retiré les extrêmes n'apporterait rien car d'autres tireraient alors l'axe 1 à eux (70, 60...) et il faudrait ainsi répéter la procédure de nombreuses fois pour étudier deux départements précis.
 
-```{r}
+```{r, include=FALSE}
 regions <- read.csv("departements-region.csv",
                     sep = ",",
                     stringsAsFactors = FALSE)
@@ -863,7 +863,7 @@ head(regions)
 
 ```
 
-```{r}
+```{r, include=FALSE}
 Base_dep$dep_code <- as.character(Base_dep$dep_code)
 regions$num_dep <- as.character(regions$num_dep)
 Base_dep <- merge(Base_dep,
@@ -875,7 +875,7 @@ Base_dep <- merge(Base_dep,
 ```
 
 
-```{r}
+```{r, include=FALSE}
 Base_region <- Base_dep |>
   group_by(region_name) |>
   summarise(across(where(is.numeric),
@@ -884,7 +884,7 @@ Base_region <- Base_dep |>
 
 ```
 
-```{r}
+```{r, include=FALSE}
 Base_region$Bloc_residentiel <- rowMeans(Base_region[, c("Biomasse","Résidentiel","Tertiaire","Routier")])
 
 # Supprimer les variables d'origine intégrées dans les blocs
@@ -893,7 +893,7 @@ Base_region <- Base_region[, !colnames(Base_region) %in% c("Biomasse","Résident
 
 ```
 
-```{r}
+```{r, include=FALSE}
 Base_region_acp <- as.data.frame(Base_region)
 
 rownames(Base_region_acp) <- Base_region_acp$region_name
@@ -902,11 +902,11 @@ Base_region_acp$region_name <- NULL
 
 ```
 
-```{r}
+```{r, include=FALSE}
 variables_quantitatives_blocs_reg <- c("Agriculture","Déchets","Energie","Industrie","Bloc_residentiel")
 ```
 
-```{r}
+```{r,include=FALSE}
 kmo_result_ACP_région <- KMO(Base_region_acp[, variables_quantitatives_blocs_reg])
 kmo_result_ACP_région
 # KMO > 0,6
@@ -920,7 +920,7 @@ mat_cor
 det(mat_cor)
 ```
 
-```{r}
+```{r,include=FALSE}
 res_acp <- PCA(Base_region_acp,
                scale.unit = TRUE,
                graph = FALSE)
@@ -942,9 +942,8 @@ Sur le graphique des individus, cela confirme que les départements du Grand Oue
 La région Provence-Alpes-Côte d’Azur se distingue par des émissions principalement liées à l’énergie et à l’industrie principalmeent tiré par le département de Bouches-du-Rhône. Quant à l’Île-de-France, elle se caractérise par le secteur résidentiel, avec des contributions importantes provenant de la biomasse, du résidentiel, du routier et du tertiaire, indiqunat bien une région urbanisé.
 Pour le reste des régions, comme pour la majorité des départements, les profils sont plutôt homogènes et similaires, sans domination marquée d’un secteur particulier.
 
-On n'a également testé une ACP sur les émissions par habitants [^2] qui n'a rien donné de nouveau. On retrouverais à peu près la même spécification des axes et donc les mêmes départements étaient présents au extrêmes tandis que tout les autres étaient concentrés en un amas.
+On n'a également testé une ACP sur les émissions par habitants^[voir annexe: ACP_ind] qui n'a rien donné de nouveau. On retrouverais à peu près la même spécification des axes et donc les mêmes départements étaient présents au extrêmes tandis que tout les autres étaient concentrés en un amas.
 
-[^2]:(voir annexe: ACP_ind)
 
 Globalement on n'arrive pas à en tirer un quelconque résultat de cette acp vu que seuls quelques département tirent vers eux tout l'axe 1. Une solution est donc de créer une nouvelle colonne mesurant les émissions totales du département pour ensuite déterminer un ratio de chaque département pour chaque secteur. On peut ainsi reprendre la base initiale, sans les départements "extrêmes".
 
@@ -1245,7 +1244,7 @@ fviz_pca_var(pca_blocs_2,
 ```
 
 ```{r}
-fviz_pca_ind(pca_blocs2, 
+fviz_pca_ind(pca_blocs_2, 
                    col.ind = "cos2", 
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    #repel =-  TRUE,
