@@ -789,7 +789,7 @@ Base_dep_blocs_corrélé <- Base_dep
 # Regroupement des variables corélées dans des blocs 
 # ---------------------------------------------------
 
-Base_dep_blocs_corrélé$Bloc_residentiel <- rowMeans(Base_dep_blocs_corrélé[, c("B")])
+Base_dep_blocs_corrélé$Bloc_residentiel <- rowMeans(Base_dep_blocs_corrélé[, c("Biomasse", "Résidentiel", "Tertiaire", "Routier")])
 
 Base_dep_blocs_corrélé$Bloc_indus <- rowMeans(Base_dep_blocs_corrélé[, c("Energie","Industrie")])
 
