@@ -746,9 +746,9 @@ Contribution_ACP1_dim2 <- fviz_contrib(pca_full, choice = "var", axes = 2, top =
 
 L’analyse des contributions montre que la première dimension, celle avec la majorité de l’information ( 62% de la variance expliqué) est principalement portée par les secteurs Biomasse, Résidentiel, Tertiaire et Routier de part leur couleur chaude mais aussi par leur qualité de représentation avec les flèches longues vers la droite. Cette observation de contribution à l'axe 1 est confirmée graphiquement^[voir annexe: Graphique 16]. Comme on l'observe les flèches de ces variables sont proches et orientées dans la même direction, illustrant leur forte corrélation, mais aussi leur corrélation à l’axe 1.
 
-La deuxième dimension est dominée par les secteurs Énergie et Industrie avec une corrélation positive à cette axe. La dimension 2 représente donc l'axe secteur industriel et sont aussi bien représentée sur le plan par leur flèche longues. Cette observation est confirmée graphiquement^[voir annexe: Graphique 17]. Les flèches correspondantes sont proches entre elles mais séparées du bloc résidentiel/tertiaire, ce qui souligne leur comportement spécifique. Le bloc Routier/Biomasse/Résidentiel/Tertiaire avec les flèches plutôt en bas indique qu'ils sont plutôt corrélées négativement à Dim2.
+La deuxième dimension est dominée par les secteurs Énergie et Industrie avec une corrélation positive à cette axe. La dimension 2 représente donc l'axe secteur industriel, les variables sont aussi bien représentées sur le plan par la présence d'une longue flèche. Cette observation est confirmée graphiquement^[voir annexe: Graphique 17]. Les flèches correspondantes sont proches entre elles mais séparées du bloc résidentiel/tertiaire, ce qui souligne leur comportement spécifique. Le bloc Routier/Biomasse/Résidentiel/Tertiaire avec les flèches plutôt en bas indique qu'ils sont plutôt corrélées négativement à Dim2.
 
-On suppose que les secteurs agriculture et déchets aurait principalement été expliqué par les dimensions secondaires que nous n’avons pas retenues pour l’analyse, indiquant un comportement plus spécifique et graphiquement on voit que les variables sont peu représentée sur ce plan et par les axes, donc leur corrélations avec Dim1 et Dim2 est faible. La variable déchets a une flèche un peu plus longue mais pas autant que les autres indiquant une contribution modérée plutôt sur la dimenssion 1. Sur le plan, la flèche Agriculture pointe dans la direction opposée au bloc Routier/Biomasse/Résidentiel/Tertiaire, illustrant un comportement différent et une corrélation négative. Cependant, la faible longueur de la flèche du secteur Agriculture indique que cette opposition n’est pas très significative sur le plan, ce qui explique que la corrélation négative reste faible.
+On suppose que les secteurs agriculture et déchets aurait principalement été expliqués par les dimensions secondaires que nous n’avons pas retenues pour l’analyse, indiquant un comportement plus spécifique. Graphiquement on voit que les variables sont peu représentées sur ce plan et par les axes, donc leurs corrélations avec Dim1 sont Dim2 sont faible. La variable déchets a une flèche un peu plus longue mais pas autant que les autres indiquant une contribution plutôt modérée  sur la dimension 1. Sur le plan, la flèche Agriculture pointe dans la direction opposée au bloc Routier/Biomasse/Résidentiel/Tertiaire, illustrant un comportement différent et une corrélation négative. Cependant, la faible longueur de la flèche du secteur Agriculture indique que cette opposition n’est pas très significative sur le plan, ce qui explique que la corrélation négative reste faible.
 
 \underline{Graphique 18} : Projection des départements sur le plan 
 ```{r,.width=3, fig.height=3}
@@ -761,7 +761,7 @@ fviz_pca_ind(pca_full, col.ind = "cos2",
 pca_full$ind
 ```
 
-Sur le graphique des individus, on observe un nuage principal regroupant la majorité des départements, ce qui montre qu’ils ont des caractéristiques assez proches. Cependant, certains départements se détachent nettement : 13 (Bouches-du-Rhône), 76 (Seine-Maritime), 93 (Seine-Saint-Denis), 94 (Val-de-Marne) et 95 (Val-d’Oise). Ces points isolés sont éloignés des autres, indiquant qu’ils ont des profils particuliers et qu’ils contribuent fortement à la structure des axes principaux (leur cos2 élevé est visible par des couleurs chaudes) . Le département 13 se distingue par sa forte contribution à Dim.2, ce qui reflète sa forte activité industrielle et ses émissions de CO2 importantes pour le secteur énergétique. La présence des départements proche de l'Ile de France éloigné sur l'axe 1 indique leur spécialisation dans le bloc Routier/Biomasse/Résidentiel/Tertiaire qui confirme que cette dimension désigne l'urbanisation des départements mais aussi tiré par le secetur industriel et énergétique. Le département 76, quant à lui, se situe en dessous de l’axe 1, ce qui est probablement lié au port du Havre et aux larges mouvements routiers. Contrairement aux départements proche de Paris, il est moins influencé par le bloc industrie/énergie, ce qui reflète son profil portuaire spécifique.
+Sur le graphique des individus, on observe un nuage principal regroupant la majorité des départements, ce qui montre qu’ils ont des caractéristiques assez proches. Cependant, certains départements se détachent nettement : 13 (Bouches-du-Rhône), 76 (Seine-Maritime), 93 (Seine-Saint-Denis), 94 (Val-de-Marne) et 95 (Val-d’Oise). Ces points isolés sont éloignés des autres, indiquant qu’ils ont des profils particuliers et qu’ils contribuent fortement à la structure des axes principaux (leur cos2 élevé est visible par des couleurs chaudes) . Le département 13 se distingue par sa forte contribution à Dim.2, ce qui reflète sa forte activité industrielle et ses émissions de CO2 importantes pour le secteur énergétique. La présence des départements proche de l'Ile de France éloigné sur l'axe 1 indique leur spécialisation dans le bloc Routier/Biomasse/Résidentiel/Tertiaire qui confirme que cette dimension désigne l'urbanisation des départements mais aussi tiré par le secteurr industriel et énergétique. Le département 76, quant à lui, se situe en dessous de l’axe 1, ce qui est probablement lié au port du Havre et aux larges mouvements routiers. Contrairement aux départements proche de Paris, il est moins influencé par le bloc industrie/énergie, ce qui reflète son profil portuaire spécifique.
 
 Les axes permettent donc de distinguer les départements « typiques » du nuage principal et ceux ayant des comportements plus atypiques avec des profils d'émission différents, facilement repérables graphiquement grâce à leur éloignement.
 
@@ -855,8 +855,8 @@ fviz_pca_var(pca_blocs,
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    title = "Cercle des corrélations - Variables")
 ```
-L’axe principal regroupe les trois blocs principaux et présente une corrélation positive avec les émissions totales : plus un département se situe à droite sur le graphique des individus, plus il est fortement émetteur, toutes catégories confondues. L’axe secondaire est fortement corrélé à l’agriculture : un département placé en hauteur sur cet axe possède donc une proportion importante d’émissions agricoles dans son profil global. Cette nouvelle ACP permet ainsi de mettre en évidence les départements dont le profil d’émissions est orienté vers l’agriculture. La contribution de la variable agriculture à cet axe est particulièrement élevée, confirmant son rôle déterminant dans cette dimension.
- 
+L’axe principal regroupe les trois blocs principaux et présente une corrélation positive avec les émissions totales : plus un département se situe à droite sur le graphique des individus, plus il est fortement émetteur plus le département possède un profil à la fois industriel et résidentiel. L’axe secondaire est fortement corrélé à l’agriculture : un département placé en hauteur sur cet axe possède donc une proportion importante d’émissions agricoles. La contribution de la variable agriculture à cet axe est particulièrement élevée, confirmant son rôle déterminant dans cette dimension.
+Cette nouvelle ACP permet ainsi de mettre en évidence les départements dont le profil d’émissions est orienté à la fois vers l'industrie et le secteur résidentiel (donc si le département est peuplé).
 
 
 \underline{Graphique 22} :  Projection des départements sur le plan 
@@ -865,7 +865,8 @@ fviz_pca_ind(pca_blocs, col.ind = "cos2",
                         gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                         title = "Carte des individus")
 ```
-De manière logique, on retrouve les mêmes départements que précédemment, avec le 13 qui se situe en haut à droite, de par ses activités industrielles et énergétiques mais il est aussi tiré vers le haut par son activité agricole non négligeable (élevage bovin, maraîchage, rizicultures...), 
+De manière logique, on retrouve les mêmes départements que précédemment, avec le 13 qui se situe en haut à droite, de par ses activités industrielles et énergétiques (port, raffinerie...). En plus, il s'agit d'un des départements possédant la plus grande densité de population en france.
+Selon la même logique, on observe des départements très peuplés avec une participation plus importante que la moyenne dans le secteur industriel.
 
 Sur la partie gauche du graphe, on remarque quand même que certains départements sortent de la masse grâce à la caractérisation de l'axe 2. On a par exemple des départements qui sortent du lot avec le Loiret (45), la Meurthe-et-Moselle (54), la Vienne (86) et l'aveyron (12) qui sont des régions faiblement peuplées et principalement exploitées au service de l'agriculture et de l'élevage. L'axe 2 permet donc réellement ici d'indiquer quel département est concentré sur l'agriculture ou non.
 
@@ -881,8 +882,8 @@ fviz_pca_ind(pca_blocs, col.ind = "cos2",
                         gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                         title = "Carte des individus") + ylim(-2, 3)+xlim(-1, 2)
 ```
-
-??????????????????????????????????????????????????????????????????????????????
+Ce "zoom" réalisé sur la base du graphique précédent permet de mieux voir les realtions entre départements et d'identifier lesquels sont à la fois industriels et fortement peuplés. 
+Idem au niveau des départements avec un profil plus agricole, on remarque que la pluspart sont des départements issus du grand ouest, notamment des pays de la loire et de la bretagne.
 
 ## ACP sur les régions 
 
@@ -901,7 +902,7 @@ regions$num_dep <- as.character(regions$num_dep)
 Base_dep <- merge(Base_dep,
                   regions[, c("num_dep", "region_name")],
                   by.x = "dep_code",
-                  by.y = "num_dep",
+                  by.y ="num_dep",
                   all.x = TRUE)
 
 ```
@@ -979,18 +980,20 @@ fviz_pca_ind(reg_acp, col.ind = "cos2",
 
 Afin de vérifier nos résultats et éventuellement affiner nos conclusions, nous avons réalisé une nouvelle ACP, cette fois en regroupant les départements par région^[voir annexe: Test 7 et 8,Tableau 4, Graphique 25].
 Sur le graphique des individus^[voir annexe: Graphique 26], cela confirme que les départements du Grand Ouest sont fortement caractérisés par des émissions liées à l’agriculture, puisque l’on observe que les régions Pays de la Loire, Normandie et Bretagne sont tirées vers ce type d’émissions.
-La région Provence-Alpes-Côte d’Azur se distingue par des émissions principalement liées à l’énergie et à l’industrie principalmeent tiré par le département de Bouches-du-Rhône. Quant à l’Île-de-France, elle se caractérise par le secteur résidentiel, avec des contributions importantes provenant de la biomasse, du résidentiel, du routier et du tertiaire, indiqunat bien une région urbanisé.
+La région Provence-Alpes-Côte d’Azur se distingue par des émissions principalement liées à l’énergie et à l’industrie principalmeent tiré par le département de Bouches-du-Rhône. Quant à l’Île-de-France, elle se caractérise par le secteur résidentiel. Encore une fois, la région se voit porté par la présence des départements vus précédement (93,94,95).
 Pour le reste des régions, comme pour la majorité des départements, les profils sont plutôt homogènes et similaires, sans domination marquée d’un secteur particulier.
+
+Cette ACP ne révèle donc pas une structure différente de précédemment. Cependant elle a permis de synthétiser l'information sur les départements. On en tire ainsi les mêmes conclusions, indiquant que les deux ACP sont biens spécifiées au niveau de leurs dimensions.
 
 ## ACP ratio des émissions de CO2 par habitant
 
-On a également testé une ACP sur les émissions par habitants^[voir annexe: ACP par habitant] en divisant les émissions de C02 par le nombre d'habitant présent dans les département, qui n'a rien donné de nouveau. On retrouvais à peu près la même spécification des axes et donc les mêmes départements étaient présents au extrêmes tandis que tout les autres étaient concentrés en un amas.
+On a également testé une ACP sur les émissions par habitants^[voir annexe: ACP par habitant] en divisant les émissions de C02 par le nombre d'habitant présent dans les département, qui n'a rien donné de nouveau. On retrouvait à peu près la même spécification des axes et donc les mêmes départements étaient présents au extrêmes tandis que tout les autres étaient concentrés en un amas.
 
-Globalement on n'arrive pas à tirer beaucoup de conclusion de toutes les acp réalisé  puisque seuls quelques départements tirent vers eux tout l'axe 1. Une solution est donc de créer une nouvelle colonne mesurant les émissions totales du département pour ensuite déterminer un ratio de chaque département pour chaque secteur. On peut ainsi reprendre la base initiale, sans les départements "extrêmes".
+Au vu des des différentes ACP réalisées jusqu'ici, on peut simplement déterminer quels départements ont un profil à la fois résidentiel et industriel ou alors ceux portés par l'agriculture. Une solution pour obtenir plsu de nuance est de créer une nouvelle colonne mesurant les émissions totales du département pour ensuite déterminer un ratio de chaque département pour chaque secteur. On peut ainsi reprendre la base initiale, sans les départements "extrêmes".
 
 ## ACP sur les ratios d'émissions
 
-Avec cette ACP, on ne cherche plus quel secteur est le plus émetteur. On va plutôt chercher à comprendre le profil de chaque département. C'est à dire, déterminer si le secteur a une tendance industrielle tout en étant peuplé ou bien si toutes ses émissions se concentrent uniquement sur le secteur résidentiel. On peut donc avoir des profils très diverses de mis en avant, permettant de mieux comprendre le dynamique de chacun.
+Avec cette ACP, on ne cherche plus quel secteur est le plus émetteur. On va plutôt chercher à comprendre le profil de chaque département. C'est à dire, déterminer si le secteur a une tendance industrielle tout en étant peuplé ou bien si toutes ses émissions se concentrent uniquement sur le secteur résidentiel. On peut donc avoir des profils très diverses de mis en avant, permettant de mieux comprendre le dynamique et la structure des émissions de chaque territoire.
 
 ### Justification de l'acp
 
@@ -1010,8 +1013,8 @@ corr_mat_pearson_ratios=cor(mydata_ratios,method="pearson")
 corrplot(corr_mat_pearson_ratios, method = 'number',type="upper",number.cex = 0.5)
 det(corr_mat_pearson_ratios)
 ```
-Le déterminant étant très faible ( voir test , en annexe ), on décide de supprimer les variables apportant une redondance dans l'information.
-On décide de supprimer tertiaire qui est fortement corrélé à résidentiel. Ce qui est tout à fait logique car les deux sont en lien avec l'activité humaine.
+Le déterminant étant très faible^[voir annexe: Test 9], on décide de supprimer les variables apportant une redondance dans l'information.
+On décide de retirer tertiaire de cette ACP qui est fortement corrélé à résidentiel. Ce qui est tout à fait logique car les deux sont en lien avec l'activité humaine.
 
 
 ```{r, include=FALSE}
@@ -1022,8 +1025,8 @@ kmo_result_ratios <- KMO(Base_dep_ratios[, variables_quantitatives_ratios])
 kmo_result_ratios
 ```
 
-Ici le seul moyen d'avoir un KMO supérieur à 0.6 est en retirant la variable agriculture, qui n'est pas corrélée positivement avec les autres.
-Ainsi, on obtient un déterminant de 0.35.
+Le seul moyen d'avoir un KMO supérieur à 0.6 est en retirant la variable agriculture^[voir annexe: Test 10]. En cause, la nature des émissions. On trouve rarement un département très urbanisé et très agricole donc il est probable que Agriculture créer une dimension à elle seule.
+Ainsi, on obtient un déterminant de 0.35^[voir annexe: Test 11].
 
 ```{r, include=FALSE}
 # Test 11
@@ -1040,9 +1043,9 @@ pca_ratios <- PCA(Base_dep_ratios[, variables_quantitatives_ratios], scale.unit 
 pca_ratios$eig
 ```
 
-On conserve uniquement les deux premières dimensions comme le suggère la règle de Kaiser. 
+En étudiant les valeurs propres^[voir annexe: Tableau 5], on conserve uniquement les deux premières dimensions comme le suggère la règle de Kaiser. Mais on notera que la troisième dimensions est proche de 1 donc il semblerait qu'elle apporte une réelle précision dans la construction des axes
 
-```{r, warning=FALSE,.width=3, fig.height=3 }
+```{r, warning=FALSE,.width=3, fig.height=3, include=FALSE}
 # Graphique 27 
 fviz_eig(pca_ratios, 
          addlabels = TRUE,
@@ -1051,7 +1054,7 @@ fviz_eig(pca_ratios,
   theme(plot.title = element_text(size = 12))
 ```
 
-Le graphique vient confirmer les résultats précédents, seule 60% de l'information est comprise dans les deux premières dimensions. Cependant le reste des valeurs propres chute . On concervera donc deux dimensions pour cette acp.
+Le graphique des valeurs propres^[graphique 27] vient confirmer les résultats précédents, seule 60% de l'information est comprise dans les deux premières dimensions. Cependant le reste des valeurs propres chute. On concervera donc deux dimensions pour cette acp.
 
 \underline{Graphique 28} : Contribution des variables à l’ACP 
 ```{r}
@@ -1062,18 +1065,22 @@ fviz_pca_var(pca_ratios,
                    title = "Cercle des corrélations - Variables")
 
 ```
-La dimension 1 oppose d'un côté les départements où les émissions sont liées aux activités de production (industrielle et énègétique) et de l'autre, l'axe met en lumière les départements marqués par la mobilité, où le secteur Routier (incluant le transport de marchandises et de voyageurs) est le premier contributeur au profil d'émissions. Cet axe permet donc de distinguer les bassins de production des zones de transit ou de flux.
+La dimension 1 oppose d'un côté les départements où les émissions sont liées aux activités de production (industrielle et énergétique), on remarque par ailleurs que la superposition de leur flèche indique que ces variables sont très fortement corrélées positivement, et de l'autre, l'axe met en lumière les départements marqués par la mobilité, où le secteur Routier (incluant le transport de marchandises et de voyageurs) est le premier contributeur au profil d'émissions. Cet axe permet donc de distinguer les bassins de production des zones de transit ou de flux.
 
-A l'inverse, l'axe 2 semble montrer la nature du mode de vie avec une caractérisation principalement sur les variables Résidentiel et Déchets. Cet axe permet donc d'indiquer si le département est grandement peuplé ou non.
-
-Malgré une faible contribution, on décide de conserver la variable Biomasse car c'est la seule à tendre vers le bas et donc apporter une information sur l'axe 2. Sa faible contribution dans les 2 premières dimensions est dûe au fait qu'elle possède un comportement totalement différents des dynamiques observées ici.
+A l'inverse, l'axe 2 semble montrer la nature du mode de vie avec une caractérisation principalement sur les variables Résidentiel et Déchets. Cet axe permet donc d'indiquer si le département est grandement peuplé ou non. Ce secteur résidentiel semble sur le plan être perpendiculaire aux secteurs industrielle et énergétique indiquant une absence de corrélation. 
+On comprend donc que le fait d'avoir calculé les ratios permet tout de suite d'apporter plus de nuance dans les différentes caractéristiques de chacun.
 
 ```{r, include=FALSE}
 # Graphique 29 et 30 des contributions des variables à l'axe 1 et 2
 fviz_contrib(pca_ratios, choice = "var", axes = 1, top = 10)
 fviz_contrib(pca_ratios, choice = "var", axes = 2, top = 10)
+
+# Tableau 6: apport des variables pour chaque dimension
 pca_ratios$var$cos2
 ```
+
+Malgré une faible contribution, on décide de conserver la variable Biomasse car c'est la seule à tendre vers le bas et donc apporter une information sur l'axe 2^[tableau 6]. Sa faible contribution dans les 2 premières dimensions est liée au fait qu'elle possède un comportement totalement différent des dynamiques observées ici. On remarque également que l'apport d'une troisième dimension serait plus que pertinente ici. Par ailleurs son opposition aux secteurs énergétique et industriel sur le plan indique une corrélation négative. 
+
 
 \underline{Graphique 31} : Projection des départements sur le plan 
 ```{r}
@@ -1082,15 +1089,28 @@ fviz_pca_ind(pca_ratios,
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    title = "Carte des individus (cos2)")
 ```
+
+
 On observe ici 4 profils types:
-Premièrement, le cadran haut-gauche montre les départements avec un profil plutôt industriel et urbain. On retrouve par exemple les bouches du rhone(13) et la Seine et Marne(77) qui sont deux départements avec notamment une forte production énergétique. 
-En haut à droite, on retrouve les départements où les émissions sont principalement liées au mode de vie urbain, avec une production quasi inexsitante. On y trouve des départements comme Paris et sa couronne. Leurs émissions sont presque exclusivement liées au mode de vie citadin (déchets, chauffage des bureaux/logements) et au trafic routier dense.
-En bas à gauche, on retrouve des départements ayant un profil industriel mais cette fois ci, largement moins peuplé avec donc une empreinte carbonne liée en partie à la biomasse. On y retrouve par exemple le Morbihan avec une forte activité dans le domaine de l'agro alimentaire/construction navale ou encore la manche, où on retrouve à la fois la centrale de Flamanville mais aussi une production agro-alimentaire importante.
-En bas à droite, les départements ont une part prépondérante de la Biomasse dans le mix d'émissions, souvent liée à la valorisation des ressources locales (comme pour le finistère avec l'activité maritime). Ces territoires restent cependant très dépendants du transit routier, car souvent moins peuplés (finistère, var...) ou bien car ce sont des zones qui ont besoin d'acheminer des ressources.
+Premièrement, le cadran haut-gauche montre les départements avec un profil plutôt industriel et urbain. On retrouve par exemple les bouches du rhone(13) et la Seine Maritime(76) qui sont deux des départements précedemment isolés, ce qui confirme leur profil très industriel, notamment porté par la présence de leurs ports respectifs.
+En haut à droite, on retrouve les départements où les émissions sont principalement liées au mode de vie urbain, avec un trafic routier conséquent. Logiquement, on y trouve des départements comme Paris et sa couronne qui sont très urbanisés. Leurs émissions sont presque exclusivement liées au mode de vie citadin (déchets, chauffage des bureaux/logements).
+En bas à gauche, on retrouve des départements ayant un profil industriel mais cette fois ci, largement moins peuplés avec donc une empreinte carbonne liée en partie à la biomasse. On y retrouve par exemple le Morbihan avec une forte activité dans le domaine de l'agro alimentaire/construction navale ou encore la manche, où on retrouve à la fois la centrale de Flamanville mais aussi une production agro-alimentaire importante. 
+En bas à droite, les départements ont une part prépondérante de la Biomasse dans le mix d'émissions, traduisant une part des émissions de déchets très faible. Ces territoires restent cependant très dépendants du transit routier, car souvent moins peuplés et plus étendus (comme la corse) ou bien car ce sont des zones qui ont besoin d'acheminer des ressources. 
+
+Comme on a retiré l'agriculture de cette ACP, on a aussi une limite de représentatitivité avec la majorité des départements du grand ouest qui restent dans l'amas central. On pourrait donc émettre l'hypothèse que les territoires au centre du graphe sont caractérisés par un secteur agricole très important dans leurs émissions de CO2.
 
 On remarque que quelques départements ne sont pas correctement expliqués par ce plan (points bleus/verts) ce qui montre bien l'importance de la Biomasse et l'utilité de réaliser une ACP en trois dimensions. Cette troisième dimension permettrait notamment de clarsifier l'amas de département au centre du graphe, on pourrait alors avoir au minimum 4 profils biens distincts.
 
+
+
 # Conclusion
+
+Au cours de cette étude, nous avons réalisé plusieurs ACP, d'abord sur les départements, en regroupant les variables corrélées entre elles, puis sur les régions et enfin en calculant les ratios des émissions par variables. Dans la première partie, nous avons vu que l'ACP permettait d'isoler très peu de départements/régions et n'isolait que ceux ayant des spécialisation à la fois industriels et urbanisé ou ceux très agricoles. On n'avait pas d'entre deux donc tout les autres se retrouvaient très proches sur le plan des différents graphes. Dans la seconde partie, les ratios ont permis de mettre en avant plusieurs profils de départements, parfois similaires aux premières ACP, mais on a surtout identifié quatres profils typiques et nuancés. L'apport de ces deux types d'ACP nous a été très utile car là où la deuxième identifiait quatres profils, elle ne prenait pas en compte l'agriculture et c'est là que l'ACP sur les données brutes permet d'identifier les profils plus agricoles. Nous avons donc réussi à correctement identifier les différents profils départementaux en combinant deux méthodes.
+
+Grâce à notre étude, on comprend bien que certains départements concentrent la majeure partie des émissions dans un ou quelques secteurs. Mais l'on observe surtout que la majorité des départements possèdent des émissions dans les secteurs de manière assez homogène entre eux.  C'est une manière de voir que la France en tant qu'état est globalement bien organisé et non divisé entre les régions sauf pour certains département un peu plus spécialisé. Chacun participe donc à sa manière à l'économie nationale, il serait donc ridicule de déclarer que un des départements est plus émetteur dans un des secteurs et d'uniquement cibler des politiques de réduction des émissions sur celui-ci puisqu'il permet à la France entière de s'organiser. L'approche à adopter serait plutôt d'utiliser les profils trouvés dans ces ACP afin d'ensuite mener des études précises dans chacun de ces territoires pour construire une stratégie adaptée à chacun pour réduire les émissions de CO2.
+
+Notre étude possède malgré tout une limite majeure qui est que nous n'arrivons pas à obtenir une ACP avec des spécifications (KMO + déterminant) convenables simultanément pour avoir toutes les variables de prises en compte. Une autre limite est présente dans l'ACP sur les ratios: conserver uniquement deux dimensions cause un biais car la variable Biomasse construit à elle seule la troisième dimension. On a donc une perte d'information assez importante, qui doit être pris en compte dans les résultats finaux. Pour perfectionner cette étude on a donc plusieurs choix qui s'offrent à nous, notamment obtenir des  en diversifiant les secteurs d'émissions ou rajouter une dimension.
+
 
 
 
@@ -1402,4 +1422,9 @@ fviz_contrib(pca_ratios, choice = "var", axes = 1, top = 10)
 
 fviz_contrib(pca_ratios, choice = "var", axes = 2, top = 10)
 ```
+# Tableau 6: apport des variables pour chaque dimension
+```{r}
+pca_ratios$var$cos2
+```
+
 
