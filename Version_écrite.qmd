@@ -481,9 +481,9 @@ graph_corr_color_spearman <- recordPlot()
 ```
 
 
-
+\newpage
 \underline{Graphique 7} : Corrélation des émissions de CO2 par secteur (Pearson)
-```{r,.width=4, fig.height=4}
+```{r,.width=3.5, fig.height=3.5}
 replayPlot(graph_corr_color_pearson)
 ```
 
@@ -1103,8 +1103,7 @@ fviz_pca_ind(pca_ratios,
 ```
 
 
-On observe ici 4 profils types:
-Premièrement, le cadran haut-gauche montre les départements avec un profil plutôt industriel et urbain. On retrouve par exemple les bouches du rhone(13) et la Seine Maritime(76) qui sont deux des départements précedemment isolés, ce qui confirme leur profil très industriel, notamment porté par la présence de leurs ports respectifs.
+On observe ici 4 profils types, premièrement, le cadran haut-gauche montre les départements avec un profil plutôt industriel et urbain. On retrouve par exemple les bouches du rhone(13) et la Seine Maritime(76) qui sont deux des départements précedemment isolés, ce qui confirme leur profil très industriel, notamment porté par la présence de leurs ports respectifs.
 En haut à droite, on retrouve les départements où les émissions sont principalement liées au mode de vie urbain, avec un trafic routier conséquent. Logiquement, on y trouve des départements comme Paris et sa couronne qui sont très urbanisés. Leurs émissions sont presque exclusivement liées au mode de vie citadin (déchets, chauffage des bureaux/logements).
 En bas à gauche, on retrouve des départements ayant un profil industriel mais cette fois ci, largement moins peuplés avec donc une empreinte carbonne liée en partie à la biomasse. On y retrouve par exemple le Morbihan avec une forte activité dans le domaine de l'agro alimentaire/construction navale ou encore la manche, où on retrouve à la fois la centrale de Flamanville mais aussi une production agro-alimentaire importante. 
 En bas à droite, les départements ont une part prépondérante de la Biomasse dans le mix d'émissions, traduisant une part des émissions de déchets très faible. Ces territoires restent cependant très dépendants du transit routier, car souvent moins peuplés et plus étendus (comme la corse) ou bien car ce sont des zones qui ont besoin d'acheminer des ressources. 
@@ -1114,14 +1113,14 @@ Comme on a retiré l'agriculture de cette ACP, on a aussi une limite de représe
 On remarque que quelques départements ne sont pas correctement expliqués par ce plan (points bleus/verts) ce qui montre bien l'importance de la Biomasse et l'utilité de réaliser une ACP en trois dimensions. Cette troisième dimension permettrait notamment de clarsifier l'amas de département au centre du graphe, on pourrait alors avoir au minimum 4 profils biens distincts.
 
 
-
+\newpage
 # Conclusion
 
-Au cours de cette étude, nous avons réalisé plusieurs ACP, d'abord sur les départements, en regroupant les variables corrélées entre elles, puis sur les régions et enfin en calculant les ratios des émissions par variables. Dans la première partie, nous avons vu que l'ACP permettait d'isoler très peu de départements/régions et n'isolait que ceux ayant des spécialisation à la fois industriels et urbanisés ou ceux très agricoles. On n'avait pas d'entre deux donc tout les autres se retrouvaient très proches sur le plan des différents graphes. Dans la seconde partie, les ratios ont permis de mettre en avant plusieurs profils de départements, parfois similaires aux premières ACP, mais on a surtout identifié quatres profils typiques et nuancés. L'apport de ces deux types d'ACP nous a été très utile car là où la deuxième identifiait quatres profils, elle ne prenait pas en compte l'agriculture et c'est là que l'ACP sur les données brutes permet d'identifier les profils plus agricoles. Nous avons donc réussi à correctement identifier les différents profils départementaux en combinant deux méthodes.
+Au cours de cette étude, nous avons réalisé plusieurs ACP, d'abord sur les départements, en regroupant les variables corrélées entre elles, puis sur les régions et enfin en calculant les ratios des émissions par variables. Dans la première partie, nous avons vu que l'ACP permettait d'isoler très peu de départements/régions et n'isolait que ceux ayant des spécialisation à la fois industriels, urbanisés ou agricoles. On n'avait pas d'entre deux donc tout les autres départements se retrouvaient très proches sur le plan des différents graphes. Dans la seconde partie, les ratios ont permis de mettre en avant plusieurs profils de départements, parfois similaires aux premières ACP, mais on a surtout identifié quatres profils typiques et nuancés. L'apport de ces deux types d'ACP nous a été très utile car là où la deuxième identifiait quatres profils, elle ne prenait pas en compte l'agriculture et c'est là que l'ACP sur les données brutes permet d'identifier les profils plus agricoles. Nous avons donc réussi à correctement identifier les différents profils départementaux en combinant deux méthodes.
 
 Grâce à notre étude, on comprend bien que certains départements concentrent la majeure partie des émissions dans un ou quelques secteurs. Mais on observe surtout que la majorité des départements possèdent des émissions dans les secteurs de manière assez homogène entre eux. C'est une manière de voir que la France en tant qu'état est globalement bien organisé et non divisé entre les régions. Chacun participe donc à sa manière à l'économie nationale, il serait donc ridicule de déclarer qu'un département est plus émetteur dans un des secteurs et d'uniquement cibler des politiques de réduction des émissions sur celui-ci. L'approche à adopter serait plutôt d'utiliser les profils trouvés dans ces ACP afin d'ensuite mener des études précises dans chacun de ces territoires pour construire une stratégie adaptée à chacun pour réduire les émissions de CO2.
 
-Notre étude possède malgré tout une limite majeure qui est que nous n'arrivons pas à obtenir une ACP avec des spécifications (KMO + déterminant) convenables simultanément pour avoir toutes les variables de prises en compte. Une autre limite est présente dans l'ACP sur les ratios: conserver uniquement deux dimensions cause un biais car la variable Biomasse construit à elle seule la troisième dimension. On a donc une perte d'information assez importante, qui doit être pris en compte dans les résultats finaux. Pour confirmer la pertinence des résultats obtenus voir obtenir d'autres catégories, on pourrait refaire l'étude en utilisant d'autres méthodes de clustering (k-means, hiérarchique, DBSCAN).
+Notre étude possède malgré tout une limite majeure qui est que nous n'arrivons pas à obtenir une ACP avec des spécifications (KMO + déterminant) convenables simultanément pour avoir toutes les variables de prises en compte. Une autre limite est présente dans l'ACP sur les ratios, conserver uniquement deux dimensions cause un biais car la variable Biomasse construit à elle seule la troisième dimension. On a donc une perte d'information assez importante, qui doit être pris en compte dans les résultats finaux. Pour confirmer la pertinence des résultats obtenus voir obtenir d'autres catégories, on pourrait refaire l'étude en utilisant d'autres méthodes de clustering (k-means, hiérarchique, DBSCAN).
 
 \newpage
 
@@ -1149,7 +1148,7 @@ hist(Base_dep$Routier, xlab = "Routier", main = "Emission C02 - Routier", col = 
 hist(Base_dep$Tertiaire, xlab = "Tertiaire", main = "Emission C02 - Terrtiaire", col = "firebrick",cex.main = 0.8, xlim = c(0, 20000), breaks = 50)
 
 ```
-
+\newpage
 \underline{Graphiques 4} : Densités des variables quantitatives
 ```{r}
 options(scipen = 999)
@@ -1186,7 +1185,7 @@ replayPlot(graph_chart_corr_spearman)
 replayPlot(graph_corr_number_spearman)
 replayPlot(graph_corr_color_spearman)
 ```
-
+\newpage
 \underline{Graphique 11} : Détails des émissions de CO2 par secteur et par département
 ```{r, fig.width=12, fig.height=6}
 
@@ -1249,7 +1248,7 @@ ggplot(Base_top10,
 
 
 ```
-
+\newpage
 \underline{Résultat test 1} : Résultats de l’indice KMO pour l’ACP complète
 
 ```{r}
@@ -1268,6 +1267,7 @@ sapply(Base_dep[, c("Agriculture","Biomasse","Déchets","Energie",
 bartlett_result
 ```
 
+\newpage
 \underline{Résultat test 4} : Déterminant de la matrice de corrélation pour l'ACP complète
 ```{r}
 déterminant_ACP_1
@@ -1283,7 +1283,7 @@ pca_full$eig
 ```{r}
 Contribution_ACP1_dim1
 ```
-
+\newpage
 \underline{Graphique 17} : Contribution des variables à la deuxième composante principale 
 ```{r}
 Contribution_ACP1_dim2
@@ -1333,7 +1333,7 @@ fviz_eig(reg_acp,
          addlabels = TRUE,
          main = "Eboulis des valeurs propres")
 ```
-
+\newpage
 \underline{Graphique 25} : Contribution des variables à l’ACP par région
 ```{r}
 fviz_pca_var(reg_acp, 
@@ -1349,7 +1349,7 @@ fviz_pca_ind(reg_acp, col.ind = "cos2",
                         gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                         title = "Carte des individus")
 ```
-
+\newpage
 \underline {ACP habitants} : ACP ratio des émissions de CO2 par habitant
 ```{r}
 #| message: false
@@ -1430,6 +1430,7 @@ fviz_contrib(pca_ratios, choice = "var", axes = 1, top = 10)
 
 fviz_contrib(pca_ratios, choice = "var", axes = 2, top = 10)
 ```
+\newpage
 \underline {Tableau 6}: apport des variables pour chaque dimension
 ```{r}
 pca_ratios$var$cos2
