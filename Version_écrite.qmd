@@ -630,7 +630,7 @@ Nous passons maintenant à la partie d’analyse factorielle. Nous choisissons d
 
 ### Indice KMO
 
-Afin de vérifier l’adéquation de nos données à une Analyse en Composantes Principales, nous avons calculé l’indice KMO^[voir annexe: Test 1]. Celui-ci permet d’évaluer si les corrélations entre variables sont suffisamment structurées pour être synthétisées par une analyse factorielle.
+Afin de vérifier que nos données sont pertinente pour une analyse en composantes principales, nous avons calculé l’indice KMO^[voir annexe: Test 1]. Celui-ci permet d’évaluer si les corrélations entre variables sont suffisante  pour être synthétisées par une analyse factorielle.
 
 ```{r, include=FALSE}
 # Test 1 
@@ -658,7 +658,7 @@ bartlett_result <- cortest.bartlett(
 bartlett_result
 ```
 
-Les tests de normalité de Shapiro-Wilk^[voir annexe: Test 2] indiquent que toutes les variables sont significativement non normales (p-value \< 0,05), ce qui signifie qu’elles ne suivent pas une loi normale.
+Le test de normalité de Shapiro-Wilk^[voir annexe: Test 2] indiquent que toutes les variables sont significativement non normales (p-value \< 0,05), ce qui signifie qu’elles ne suivent pas une loi normale.
 
 Nous avons quand même réalisé le test de Bartlett^[voir annexe: Test 3] pour vérifier la présence de corrélations suffisantes entre les variables. Ce test est très significatif, et permet de rejeter l’hypothèse nulle d’indépendance entre les secteurs et confire que des corrélations importantes existent. Cependant, étant donné l’asymétrie des données, ce test n'est pas fiable. La justification de l'ACP se fait donc essentiellement sur l’indice KMO.
 
@@ -670,17 +670,16 @@ déterminant_ACP_1 <- det(corr_mat_pearson)
 déterminant_ACP_1
 ```
 
-Ensuite, nous vérifions le déterminant de la matrice de corrélation de Pearson^[voir annexe: Test 4], qui est très faible (\~6,67e-9).Nous aurions pu utiliser les corrélations de Spearman au vu de l’asymétrie de la distribution de nos données. Mais les conclusions sur les corrélations obtenues étant similaires, nous retenons la corrélation de Pearson, qui facilite l’interprétation et permet de conserver l’intensité des relations entre variables. Le déterminant très faible indique que certaines variables sont très fortement corrélées, mais pas parfaitement (comme observé dans l’analyse bivariée). Cette situation confirme que l’ACP est appropriée pour synthétiser l’information contenue dans les différents secteurs.
+Ensuite, nous vérifions le déterminant de la matrice de corrélation de Pearson^[voir annexe: Test 4], qui est très faible (6,67e-9). Nous aurions pu utiliser les corrélations de Spearman au vu de l’asymétrie de la distribution de nos données, mais les conclusions sur les corrélations obtenues étant similaires, nous retenons la corrélation de Pearson, qui facilite l’interprétation et permet de conserver l’intensité des relations entre variables. Le déterminant très faible indique que certaines variables sont très fortement corrélées, mais pas parfaitement (comme observé dans l’analyse bivariée). Cette situation confirme que l’ACP est appropriée pour synthétiser l’information contenue dans les différents secteurs.
 
 Nous réalisons dans un premier temps une ACP sur l’ensemble des variables initiales, car le déterminant n’est pas nul et ne nécessite donc pas la suppression immédiate de variables.
 
-Puis, afin d’évaluer l’impact des corrélations quasi parfaites et d’améliorer l’analyse, nous effectuons une ACP après regroupement des variables très fortement corrélées (corrélation \> 0,97). Ainsi, les secteurs biomasse, résidentiel, tertiaire et routier sont regroupés en un premier bloc, et énergie et industrie dans un second.
+Puis, afin d’évaluer l’impact des corrélations casiment parfaites et d’améliorer l’analyse, nous effectuons une ACP après regroupement des variables très fortement corrélées (corrélation \> 0,97). Ainsi, les secteurs biomasse, résidentiel, tertiaire et routier sont regroupés en un premier bloc, et énergie et industrie dans un second.
 
 
 ## ACP sur l'enssemble des émissions de CO2 par département 
 
-Cette ACP est réalisée sur les données brutes d'émissions de CO2 donc elle va indiquer quel secteur porte principalement les émissions de CO2 de chaque département.
-
+Cette ACP vise à mettre en évidence la structure sectorielle des émissions de CO2 des départements et à identifier d’éventuels profils d’émission communs.
 
 ```{r, inlcude = FALSE, warning=FALSE}
 # --------------------------
@@ -690,7 +689,7 @@ Cette ACP est réalisée sur les données brutes d'émissions de CO2 donc elle v
 rownames(Base_dep) <- Base_dep$dep_code
 ```
 
-Bien que toutes les variables soient exprimées dans la même unité (tonnes équivalent CO2), leurs dispersions et ordres de grandeur diffèrent fortement selon les secteurs. Le centrage-réduction est donc nécessaire afin d’éviter que les secteurs les plus émetteurs ne dominent l’analyse et afin de mettre en évidence la structure relative des émissions entre départements.
+Bien que toutes les variables soient exprimées dans la même unité (tonnes équivalent CO2), leurs dispersions et ordres de grandeur diffèrent fortement selon les secteurs. Le centrage-réduction est donc nécessaire afin d’éviter que les secteurs les plus émetteurs ne dominent l’analyse et afin de mettre en évidence les différences de profils d’émissions entre départements.
 
 ```{r, include=FALSE}
 pca_full <- PCA(Base_dep[, variables_quantitatives], scale.unit = TRUE, graph = FALSE)
@@ -708,11 +707,12 @@ pca_full <- PCA(Base_dep[, variables_quantitatives], scale.unit = TRUE, graph = 
 pca_full$eig      
 ```
 
-Après analyse des valeurs propres de l’ACP^[voir annexe: Tableau 2], on observe que les deux premières composantes principales expliquent 81,93% de la variance totale (Dim 1 : 61,9 %, Dim 2 : 19,9%). Ces deux axes contiennent donc l’essentiel de l’information et permettent de synthétiser efficacement les relations entre les secteurs et les départements. Nous avons donc choisi de retenir uniquement les deux premières composantes pour les analyses et visualisations ultérieures puisque les composantes suivante n'explique qu'une part marginale de la variance.
+Après analyse des valeurs propres de l’ACP^[voir annexe: Tableau 2], on observe que les deux premières composantes principales expliquent 81,93% de la variance totale (Dim 1 : 61,9 %, Dim 2 : 19,9%). Ces deux axes contiennent donc l’essentiel de l’information et permettent de synthétiser efficacement les relations entre les secteurs et les départements. Nous avons donc choisi de retenir uniquement les deux premières composantes puisque les composantes suivante n'explique qu'une part marginale de la variance.
 
 Selon la règle de Kaiser, on ne conserve que les composantes dont la valeur propre est supérieure à 1. Ici, les deux premières composantes ont une valeur propre \> 1 (Comp 1 : 4,96, Comp 2 : 1,59).
 
 ### Éboulis des valeurs propres
+
 
 \underline{Graphique 14} : Éboulis des valeurs propres de l’ACP 
 
@@ -726,6 +726,7 @@ fviz_eig(pca_full,
 
 L’éboulis des valeurs propres montre une chute marquée après la deuxième composante, ce qui suggère que les deux premiers axes concentrent l’essentiel de l’information pertinente.
 
+\newpage
 \underline{Graphique 15} : Contribution des variables à l’ACP 
 ```{r, warning=FALSE}
 fviz_pca_var(pca_full, col.var = "contrib", 
@@ -743,7 +744,7 @@ Contribution_ACP1_dim1 <- fviz_contrib(pca_full, choice = "var", axes = 1, top =
 Contribution_ACP1_dim2 <- fviz_contrib(pca_full, choice = "var", axes = 2, top = 10)
 ```
 
-L’analyse des contributions montre que la première dimension est principalement portée par les secteurs Biomasse, Résidentiel, Tertiaire et Routier. Cette observation est confirmée graphiquement^[voir annexe: Graphique 16], confirmant l’existence d’un bloc fortement corrélé puisque les axes son proche sur le plan. La dimension 1 représente donc un axe pouvant être appelé énergie domestique, tertiaire et mobilité. Le Cos² de ces variables sur Dim 1 est très élevé (Routier : 0,942 ; Biomasse : 0,891 ; Résidentiel : 0,870 ; Tertiaire : 0,871), ce qui indique qu’elles sont très bien représentées sur cette dimension et que Dim 1 reflète fidèlement ce bloc. Graphiquement, les flèches de ces variables sont proches et orientées dans la même direction, illustrant leur forte corrélation.
+L’analyse des contributions montre que la première dimension est principalement portée par les secteurs Biomasse, Résidentiel, Tertiaire et Routier de part leur couleur chaude mais aussi par leur qualité de représentation avec les flèches longues vers la droite. Cette observation est confirmée graphiquement^[voir annexe: Graphique 16]. Graphiquement, les flèches de ces variables sont proches et orientées dans la même direction, illustrant leur forte corrélation.
 
 La deuxième dimension est dominée par les secteurs Énergie et Industrie, la dimension 2 représente donc l'axe secteur industriel. Cette observation est confirmée graphiquement^[voir annexe: Graphique 17]. Le Cos² de ces variables sur Dim 2 est relativement élevé (Énergie : 0,619 ; Industrie : 0,538), confirmant qu’elles sont bien représentées sur Dim 2. Les flèches correspondantes sont proches entre elles mais séparées du bloc résidentiel/tertiaire, ce qui souligne leur comportement spécifique.
 
