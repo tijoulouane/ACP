@@ -744,11 +744,11 @@ Contribution_ACP1_dim1 <- fviz_contrib(pca_full, choice = "var", axes = 1, top =
 Contribution_ACP1_dim2 <- fviz_contrib(pca_full, choice = "var", axes = 2, top = 10)
 ```
 
-L’analyse des contributions montre que la première dimension est principalement portée par les secteurs Biomasse, Résidentiel, Tertiaire et Routier de part leur couleur chaude mais aussi par leur qualité de représentation avec les flèches longues vers la droite. Cette observation est confirmée graphiquement^[voir annexe: Graphique 16]. Graphiquement, les flèches de ces variables sont proches et orientées dans la même direction, illustrant leur forte corrélation.
+L’analyse des contributions montre que la première dimension, celle avec la majorité de l’information ( 62% de la variance expliqué) est principalement portée par les secteurs Biomasse, Résidentiel, Tertiaire et Routier de part leur couleur chaude mais aussi par leur qualité de représentation avec les flèches longues vers la droite. Cette observation de contribution à l'axe 1 est confirmée graphiquement^[voir annexe: Graphique 16]. Comme on l'observe les flèches de ces variables sont proches et orientées dans la même direction, illustrant leur forte corrélation, mais aussi leur corrélation à l’axe 1.
 
-La deuxième dimension est dominée par les secteurs Énergie et Industrie, la dimension 2 représente donc l'axe secteur industriel. Cette observation est confirmée graphiquement^[voir annexe: Graphique 17]. Le Cos² de ces variables sur Dim 2 est relativement élevé (Énergie : 0,619 ; Industrie : 0,538), confirmant qu’elles sont bien représentées sur Dim 2. Les flèches correspondantes sont proches entre elles mais séparées du bloc résidentiel/tertiaire, ce qui souligne leur comportement spécifique.
+La deuxième dimension est dominée par les secteurs Énergie et Industrie avec une corrélation positive à cette axe. La dimension 2 représente donc l'axe secteur industriel et sont aussi bien représentée sur le plan par leur flèche longues. Cette observation est confirmée graphiquement^[voir annexe: Graphique 17]. Les flèches correspondantes sont proches entre elles mais séparées du bloc résidentiel/tertiaire, ce qui souligne leur comportement spécifique. Le bloc Routier/Biomasse/Résidentiel/Tertiaire avec les flèches plutôt en bas indique qu'ils sont plutôt corrélées négativement à Dim2.
 
-Les secteurs Agriculture et Déchets structurent principalement des dimensions secondaires que nous n’avons pas retenues pour l’analyse (Agriculture Cos² Dim 3 : 0,863 ; Déchets Cos² Dim 4 : 0,360), indiquant un comportement plus spécifique et indiqunat que les variables sont peu représentée sur ce plan. Sur le plan, la flèche Agriculture pointe dans la direction opposée au bloc Routier/Biomasse/Résidentiel/Tertiaire, illustrant un comportement différent et une corrélation négative. Cependant, la faible longueur de la flèche du secteur Agriculture indique que cette opposition n’est pas très significative sur le plan, ce qui explique que la corrélation négative reste faible.
+On suppose que les secteurs agriculture et déchets aurait principalement été expliqué par les dimensions secondaires que nous n’avons pas retenues pour l’analyse, indiquant un comportement plus spécifique et graphiquement on voit que les variables sont peu représentée sur ce plan et par les axes, donc leur corrélations avec Dim1 et Dim2 est faible. La variable déchets a une flèche un peu plus longue mais pas autant que les autres indiquant une contribution modérée plutôt sur la dimenssion 1. Sur le plan, la flèche Agriculture pointe dans la direction opposée au bloc Routier/Biomasse/Résidentiel/Tertiaire, illustrant un comportement différent et une corrélation négative. Cependant, la faible longueur de la flèche du secteur Agriculture indique que cette opposition n’est pas très significative sur le plan, ce qui explique que la corrélation négative reste faible.
 
 \underline{Graphique 18} : Projection des départements sur le plan 
 ```{r,.width=3, fig.height=3}
@@ -761,9 +761,9 @@ fviz_pca_ind(pca_full, col.ind = "cos2",
 pca_full$ind
 ```
 
-Sur le graphique des individus, on observe un nuage principal regroupant la majorité des départements, ce qui montre qu’ils ont des caractéristiques assez proches. Cependant, certains départements se détachent nettement : 13 (Bouches-du-Rhône), 76 (Seine-Maritime), 93 (Seine-Saint-Denis), 94 (Val-de-Marne) et 95 (Val-d’Oise). Ces points isolés sont éloignés des autres, indiquant qu’ils ont des profils particuliers et qu’ils contribuent fortement à la structure des axes principaux. Le 13 montre bien la spécification de l'axe 2, qui détermine si le département à une forte activité industrielle. la présence des départements d'Ile de France sur l'axe 1 confirme également que cette dimansion désigne l'urbanisation des départements. Pour le 76, sa présence en dessous de l'axe 1 est surement lié au port du havre qui implique derrière de larges mouvements routiers.
+Sur le graphique des individus, on observe un nuage principal regroupant la majorité des départements, ce qui montre qu’ils ont des caractéristiques assez proches. Cependant, certains départements se détachent nettement : 13 (Bouches-du-Rhône), 76 (Seine-Maritime), 93 (Seine-Saint-Denis), 94 (Val-de-Marne) et 95 (Val-d’Oise). Ces points isolés sont éloignés des autres, indiquant qu’ils ont des profils particuliers et qu’ils contribuent fortement à la structure des axes principaux (leur cos2 élevé est visible par des couleurs chaudes) . Le département 13 se distingue par sa forte contribution à Dim.2, ce qui reflète sa forte activité industrielle et ses émissions de CO2 importantes pour le secteur énergétique. La présence des départements proche de l'Ile de France éloigné sur l'axe 1 indique leur spécialisation dans le bloc Routier/Biomasse/Résidentiel/Tertiaire qui confirme que cette dimension désigne l'urbanisation des départements mais aussi tiré par le secetur industriel et énergétique. Le département 76, quant à lui, se situe en dessous de l’axe 1, ce qui est probablement lié au port du Havre et aux larges mouvements routiers. Contrairement aux départements proche de Paris, il est moins influencé par le bloc industrie/énergie, ce qui reflète son profil portuaire spécifique.
 
-Les axes du PCA permettent donc de distinguer les départements « typiques » du nuage principal et ceux ayant des comportements plus atypiques ou extrêmes, facilement repérables graphiquement grâce à leur éloignement.
+Les axes permettent donc de distinguer les départements « typiques » du nuage principal et ceux ayant des comportements plus atypiques avec des profils d'émission différents, facilement repérables graphiquement grâce à leur éloignement.
 
 \underline{Graphique 19} : Projection des départements et des variables sur le plan 
 ```{r}
@@ -789,7 +789,7 @@ Base_dep_blocs_corrélé <- Base_dep
 # Regroupement des variables corélées dans des blocs 
 # ---------------------------------------------------
 
-Base_dep_blocs_corrélé$Bloc_residentiel <- rowMeans(Base_dep_blocs_corrélé[, c("Biomasse","Résidentiel","Tertiaire","Routier")])
+Base_dep_blocs_corrélé$Bloc_residentiel <- rowMeans(Base_dep_blocs_corrélé[, c("B")])
 
 Base_dep_blocs_corrélé$Bloc_indus <- rowMeans(Base_dep_blocs_corrélé[, c("Energie","Industrie")])
 
@@ -822,7 +822,7 @@ det(corr_mat_blocs)
 # déterminant supérieur à 0 donc pas de corrélation parfaite (mieux que l'ancien déterminant calculé)
 ```
 
-Comme précisé précédemment, nous avons également réalisé une Analyse en Composantes Principales (ACP) après avoir regroupé les variables très fortement corrélées en blocs. Après ce regroupement, le nombre de variables quantitatives est réduit à quatre blocs principaux (Agriculture, Déchets, Bloc_résidentiel et Bloc_industriel), ce qui permet de limiter la redondance. Bien que ce nombre soit faible, l’analyse reste pertinente pour explorer les relations entre ces blocs mais son but n'est plus concrètement de réduire la dimension.
+Comme précisé précédemment, nous avons également réalisé une Analyse en Composantes Principales (ACP) après avoir regroupé les variables très fortement corrélées en blocs (Bloc résidentiel : biomasse, résidentiel, tertiaire, routier/ Bloc Industriel : industrie et énergie). Après ce regroupement, le nombre de variables quantitatives est réduit à quatre, ce qui permet de limiter la redondance. Bien que ce nombre soit faible, l’analyse reste pertinente pour explorer les relations entre ces blocs mais son but n'est plus concrètement de réduire la dimension.
 
 Nous avons recalculé l’indice KMO^[voir annexe: Test 5], qui est supérieur à 0,6, indiquant que les corrélations entre variables sont suffisante pour réaliser l'ACP. De plus, le déterminant de la matrice de corrélation^[voir annexe: Test 6] est bien différent de zéro (0,412), contrairement à la première ACP où il était très proche de zéro, signe d’une forte multicolinéarité. Ces résultats confirment que l’ACP sur les blocs peut être réalisée.
 
@@ -855,7 +855,9 @@ fviz_pca_var(pca_blocs,
                    gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
                    title = "Cercle des corrélations - Variables")
 ```
-Ici, l'axe principal concentre les 3 blocs principaux, ce qui indique que plus un département sera sur la droite du graphique des individus plus ce sera un département émetteur (tous secteurs confondus). L'axe 2 lui est caractérisé par l'agriculture, ce qui indique qu'un département placé "plus haut" possédera une composante agricole importante dans ses émissions totales.
+L’axe principal regroupe les trois blocs principaux et présente une corrélation positive avec les émissions totales : plus un département se situe à droite sur le graphique des individus, plus il est fortement émetteur, toutes catégories confondues. L’axe secondaire est fortement corrélé à l’agriculture : un département placé en hauteur sur cet axe possède donc une proportion importante d’émissions agricoles dans son profil global. Cette nouvelle ACP permet ainsi de mettre en évidence les départements dont le profil d’émissions est orienté vers l’agriculture. La contribution de la variable agriculture à cet axe est particulièrement élevée, confirmant son rôle déterminant dans cette dimension.
+ 
+
 
 \underline{Graphique 22} :  Projection des départements sur le plan 
 ```{r}
@@ -867,8 +869,8 @@ De manière logique, on retrouve les mêmes départements que précédemment, av
 
 Sur la partie gauche du graphe, on remarque quand même que certains départements sortent de la masse grâce à la caractérisation de l'axe 2. On a par exemple des départements qui sortent du lot avec le Loiret (45), la Meurthe-et-Moselle (54), la Vienne (86) et l'aveyron (12) qui sont des régions faiblement peuplées et principalement exploitées au service de l'agriculture et de l'élevage. L'axe 2 permet donc réellement ici d'indiquer quel département est concentré sur l'agriculture ou non.
 
-Cependant, il faut prendre en compte les limites de cette représentation: à part les départements très émetteurs dans certains secteurs, on ne parvient pas à visualiser les différences entre départements car la plus part se retrouvent très proche sur le graphique. 
-Dans un premier temps, on a essayé de supprimer de l'ACP les départements ayant un profil particulier mais sans succès car de nouveaux apparaissent alors, tirant les axes vers eux et empêchant à nouveau une interprétation claire et précise
+Cependant, il faut prendre en compte les limites de cette représentation, à part les départements très émetteurs dans certains secteurs, on ne parvient pas à visualiser les différences entre départements car la plus part se retrouvent très proche sur le graphique. 
+Dans un premier temps, on a essayé de supprimer de l'ACP les départements ayant un profil particulier mais sans succès car de nouveaux apparaissent alors, tirant les axes vers eux et empêchant à nouveau une interprétation claire et précise.
 On décide alors de se concentrer uniquement sur les départements proches les uns des autres.
 
 \underline{Graphique 23} :  Zoom sur la projection des départements sur le plan 
